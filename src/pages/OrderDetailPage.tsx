@@ -80,7 +80,7 @@ export function OrderDetailPage() {
         <div className="lg:col-span-2 flex flex-col gap-4">
 
           {/* Order summary card */}
-          <Card>
+          <Card className="hover:shadow-md transition-shadow duration-200">
             <CardContent className="p-0">
               <div className="flex flex-col sm:flex-row gap-0">
                 {/* Product image placeholder */}
@@ -112,7 +112,7 @@ export function OrderDetailPage() {
           </Card>
 
           {/* Order pipeline */}
-          <Card>
+          <Card className="hover:shadow-md transition-shadow duration-200">
             <CardHeader className="pb-3">
               <CardTitle className="text-base">Order Progress</CardTitle>
             </CardHeader>
@@ -142,10 +142,10 @@ export function OrderDetailPage() {
                             <div className={`h-full transition-all duration-500 ${isDone ? "bg-primary" : "bg-gray-200 dark:bg-slate-700"}`} />
                           </div>
                         )}
-                        <div className={`relative z-10 flex items-center justify-center w-10 h-10 rounded-full border-2 transition-all duration-300 ${
-                          isDone ? "bg-primary border-primary text-primary-foreground"
-                            : isActive ? "bg-primary border-primary text-primary-foreground ring-4 ring-primary/20"
-                            : "bg-white dark:bg-slate-800 border-gray-200 dark:border-slate-700 text-gray-400 dark:text-slate-500"
+                        <div className={`relative z-10 flex items-center justify-center w-10 h-10 rounded-full border-2 transition-all duration-300 hover:scale-110 cursor-default ${
+                          isDone ? "bg-primary border-primary text-primary-foreground hover:shadow-lg hover:shadow-primary/30"
+                            : isActive ? "bg-primary border-primary text-primary-foreground ring-4 ring-primary/20 hover:shadow-lg hover:shadow-primary/30"
+                            : "bg-white dark:bg-slate-800 border-gray-200 dark:border-slate-700 text-gray-400 dark:text-slate-500 hover:border-primary/50"
                         }`}>
                           {isDone ? <CheckCircle2 className="h-5 w-5" /> : <Icon className="h-5 w-5" />}
                         </div>
@@ -169,7 +169,7 @@ export function OrderDetailPage() {
 
           {/* Status history */}
           {history && history.length > 0 && (
-            <Card>
+            <Card className="hover:shadow-md transition-shadow duration-200">
               <CardHeader className="pb-3">
                 <CardTitle className="text-base">Status History</CardTitle>
               </CardHeader>
@@ -210,7 +210,7 @@ export function OrderDetailPage() {
         <div className="flex flex-col gap-4">
           {/* Actions */}
           {nextStatuses.length > 0 && (
-            <Card>
+            <Card className="hover:shadow-md transition-shadow duration-200">
               <CardHeader className="pb-3">
                 <CardTitle className="text-base">Actions</CardTitle>
               </CardHeader>
@@ -233,7 +233,7 @@ export function OrderDetailPage() {
           )}
 
           {/* Order details */}
-          <Card>
+          <Card className="hover:shadow-md transition-shadow duration-200">
             <CardHeader className="pb-3">
               <CardTitle className="text-base">Order Details</CardTitle>
             </CardHeader>

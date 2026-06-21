@@ -117,7 +117,7 @@ export function OrdersPage() {
               </TableHeader>
               <TableBody>
                 {data.items.map((order: Order) => (
-                  <TableRow key={order.id} className="cursor-pointer hover:bg-muted/40" onClick={() => navigate(ROUTES.ORDER_DETAIL(order.id))}>
+                  <TableRow key={order.id} className="cursor-pointer hover:bg-muted/80 dark:hover:bg-muted/50 hover:scale-[1.01] transition-all duration-150" onClick={() => navigate(ROUTES.ORDER_DETAIL(order.id))}>
                     <TableCell className="font-mono text-xs text-muted-foreground">#{order.id}</TableCell>
                     <TableCell className="font-medium">{order.customer_name}</TableCell>
                     <TableCell className="text-muted-foreground text-sm">{order.customer_email}</TableCell>

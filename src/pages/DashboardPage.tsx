@@ -232,8 +232,8 @@ export function DashboardPage() {
               <p className="text-xs">Orders you open will appear here</p>
             </div>
           ) : (
-            <div className="flex flex-col gap-2">
-              {recent.map((order) => {
+            <div className="flex flex-col">
+              {recent.map((order, index) => {
                 const statusIcons: Record<string, React.ElementType> = {
                   pending: Clock, paid: CreditCard, shipped: Package, cancelled: XCircle,
                 };
@@ -249,29 +249,31 @@ export function DashboardPage() {
                   : viewedDate.toLocaleDateString();
 
                 return (
-                  <Link
-                    key={order.id}
-                    to={ROUTES.ORDER_DETAIL(order.id)}
-                    className="flex items-center gap-3 p-3 rounded-xl border border-transparent hover:bg-muted/50 hover:border-border hover:-translate-y-0.5 transition-all duration-150 group"
-                  >
-                    <div className={`p-2 rounded-lg ${statusCfg.bg}`}>
-                      <Icon className={`h-4 w-4 ${statusCfg.color}`} />
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center justify-between">
-                        <p className="text-sm font-semibold text-gray-900 dark:text-white truncate">{order.customer_name}</p>
-                        <span className="text-[10px] text-muted-foreground shrink-0 ml-2">{timeAgo}</span>
+                  <div key={order.id}>
+                    {index > 0 && <div className="border-t border-border/50 mx-3" />}
+                    <Link
+                      to={ROUTES.ORDER_DETAIL(order.id)}
+                      className="flex items-center gap-3 px-3 py-3 rounded-xl border border-transparent hover:bg-muted/50 hover:border-border hover:-translate-y-0.5 transition-all duration-150 group"
+                    >
+                      <div className={`p-2 rounded-lg ${statusCfg.bg}`}>
+                        <Icon className={`h-4 w-4 ${statusCfg.color}`} />
                       </div>
-                      <div className="flex items-center gap-2 mt-0.5">
-                        <span className="text-xs text-muted-foreground">#{order.id}</span>
-                        <span className="text-muted-foreground">·</span>
-                        <span className="text-xs text-muted-foreground">${order.total_amount.toFixed(2)}</span>
-                        <span className="text-muted-foreground">·</span>
-                        <span className={`text-[10px] font-semibold capitalize px-1.5 py-0.5 rounded-full ${statusCfg.badge}`}>{order.status}</span>
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center justify-between">
+                          <p className="text-sm font-semibold text-gray-900 dark:text-white truncate">{order.customer_name}</p>
+                          <span className="text-[10px] text-muted-foreground shrink-0 ml-2">{timeAgo}</span>
+                        </div>
+                        <div className="flex items-center gap-2 mt-0.5">
+                          <span className="text-xs text-muted-foreground">#{order.id}</span>
+                          <span className="text-muted-foreground">·</span>
+                          <span className="text-xs text-muted-foreground">${order.total_amount.toFixed(2)}</span>
+                          <span className="text-muted-foreground">·</span>
+                          <span className={`text-[10px] font-semibold capitalize px-1.5 py-0.5 rounded-full ${statusCfg.badge}`}>{order.status}</span>
+                        </div>
                       </div>
-                    </div>
-                    <ArrowRight className="h-3.5 w-3.5 text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity shrink-0" />
-                  </Link>
+                      <ArrowRight className="h-3.5 w-3.5 text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity shrink-0" />
+                    </Link>
+                  </div>
                 );
               })}
             </div>

@@ -11,6 +11,7 @@ export function AppLayout() {
   const hydrate = useAuthStore((s: { hydrate: () => void }) => s.hydrate);
   const isAuthenticated = useAuthStore((s: { isAuthenticated: boolean }) => s.isAuthenticated);
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
 
   useEffect(() => { hydrate(); }, [hydrate]);
 
@@ -33,7 +34,7 @@ export function AppLayout() {
           <div className="flex flex-1 min-h-screen">
             {/* Desktop sidebar */}
             <div className="hidden md:block fixed top-0 left-0 h-screen z-30">
-              <Sidebar />
+              <Sidebar collapsed={sidebarCollapsed} onToggle={() => setSidebarCollapsed(c => !c)} />
             </div>
 
             {/* Mobile sidebar drawer */}
@@ -41,7 +42,7 @@ export function AppLayout() {
               <>
                 <div className="fixed inset-0 bg-black/40 z-40 md:hidden" onClick={() => setSidebarOpen(false)} />
                 <div className="fixed top-0 left-0 bottom-0 z-50 md:hidden flex">
-                  <Sidebar />
+                  <Sidebar collapsed={false} onToggle={() => {}} />
                   <button
                     onClick={() => setSidebarOpen(false)}
                     className="absolute top-3 right-3 p-1.5 rounded-full bg-gray-200 dark:bg-slate-700 text-gray-600 dark:text-gray-300"
@@ -52,7 +53,7 @@ export function AppLayout() {
               </>
             )}
 
-            <main className="flex-1 min-w-0 px-4 py-6 md:px-6 md:ml-56">
+            <main className={`flex-1 min-w-0 px-4 py-6 md:px-6 transition-all duration-300 ${sidebarCollapsed ? 'md:ml-14' : 'md:ml-56'}`}>
               <Outlet />
             </main>
           </div>
