@@ -2,7 +2,7 @@ import { create } from "zustand";
 import { getToken, setToken, clearToken } from "@/lib/api-client";
 import type { User } from "@/types/auth";
 
-interface AuthState {
+export interface AuthState {
   user: User | null;
   isAuthenticated: boolean;
   setAuth: (user: User, token: string) => void;
