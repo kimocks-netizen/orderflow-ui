@@ -1,6 +1,7 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { createOrder, updateOrderStatus } from "./api";
 import { ordersKeys } from "./queries";
+import { toast } from "sonner";
 import type { CreateOrderPayload, UpdateStatusPayload } from "@/types/order";
 
 export function useCreateOrder() {
@@ -9,6 +10,10 @@ export function useCreateOrder() {
     mutationFn: (data: CreateOrderPayload) => createOrder(data),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ordersKeys.all });
+      toast.success('Order created successfully');
+    },
+    onError: (e: Error) => {
+      toast.error(e.message ?? 'Failed to create order');
     },
   });
 }
@@ -20,6 +25,10 @@ export function useUpdateOrderStatus(id: number | string) {
     onSuccess: (updated) => {
       qc.setQueryData(ordersKeys.detail(id), updated);
       qc.invalidateQueries({ queryKey: ordersKeys.all });
+      toast.success(`Order status updated to ${updated.status}`);
+    },
+    onError: (e: Error) => {
+      toast.error(e.message ?? 'Invalid status transition');
     },
   });
 }

@@ -38,7 +38,7 @@ export function LoginForm() {
 
   return (
     <FormProvider {...methods}>
-      <form onSubmit={methods.handleSubmit(onSubmit)} className="flex flex-col gap-4">
+      <form onSubmit={methods.handleSubmit(onSubmit)} className="flex flex-col gap-6">
         {apiError && (
           <div className="rounded-md bg-destructive/10 border border-destructive/20 px-3 py-2 text-sm text-destructive">
             {apiError}

@@ -102,13 +102,34 @@ export const mockApi = {
   fetchDashboardSummary(): Promise<DashboardSummary> {
     const byStatus = { pending: 0, paid: 0, shipped: 0, cancelled: 0 };
     let totalRevenue = 0;
+    let revenueCount = 0;
     for (const o of orders) {
       byStatus[o.status]++;
-      if (o.status !== "cancelled") totalRevenue += o.total_amount;
+      if (o.status !== "cancelled") { totalRevenue += o.total_amount; revenueCount++; }
     }
     const today = new Date().toDateString();
     const ordersToday = orders.filter((o) => new Date(o.created_at).toDateString() === today).length;
-    return delay({ total_orders: orders.length, orders_by_status: byStatus, total_revenue: totalRevenue, orders_today: ordersToday });
+
+    // orders per day — last 7 days
+    const dayMap: Record<string, number> = {};
+    for (let i = 6; i >= 0; i--) {
+      const d = new Date(); d.setDate(d.getDate() - i);
+      dayMap[d.toDateString()] = 0;
+    }
+    for (const o of orders) {
+      const key = new Date(o.created_at).toDateString();
+      if (key in dayMap) dayMap[key]++;
+    }
+    const orders_per_day = Object.entries(dayMap).map(([date, count]) => ({ date, count }));
+
+    return delay({
+      total_orders: orders.length,
+      orders_by_status: byStatus,
+      total_revenue: totalRevenue,
+      orders_today: ordersToday,
+      avg_order_value: revenueCount ? totalRevenue / revenueCount : 0,
+      orders_per_day,
+    });
   },
 };
 

@@ -8,4 +8,6 @@ export interface DashboardSummary {
   };
   total_revenue: number;
   orders_today: number;
+  avg_order_value: number;
+  orders_per_day: { date: string; count: number }[];
 }

@@ -1,13 +1,12 @@
 import { useState } from "react";
 
-export function usePagination(initialPage = 1, initialPageSize = 20) {
+export function usePagination(initialPage = 1, initialPageSize = 10) {
   const [page, setPage] = useState(initialPage);
-  const [pageSize] = useState(initialPageSize);
+  const [pageSize, setPageSize] = useState(initialPageSize);
 
   const goToPage = (p: number) => setPage(p);
-  const nextPage = () => setPage((p) => p + 1);
-  const prevPage = () => setPage((p) => Math.max(1, p - 1));
   const reset = () => setPage(1);
+  const changePageSize = (size: number) => { setPageSize(size); setPage(1); };
 
-  return { page, pageSize, goToPage, nextPage, prevPage, reset };
+  return { page, pageSize, goToPage, reset, changePageSize };
 }
