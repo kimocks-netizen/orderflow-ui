@@ -125,7 +125,7 @@ export function LandingPage() {
   async function checkHealth() {
     setHealthStatus('checking');
     try {
-      const baseUrl = API_URL.replace('/api', '');
+      const baseUrl = API_URL.replace(/\/api$/, '');
       const res = await fetch(`${baseUrl}/health`);
       setHealthStatus(res.ok ? 'online' : 'offline');
     } catch {
