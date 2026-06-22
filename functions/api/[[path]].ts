@@ -1,6 +1,6 @@
 const BACKEND_URL = "http://13.247.70.10:8000";
 
-const CORS_HEADERS = {
+const CORS_HEADERS: Record<string, string> = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Methods": "GET, POST, PATCH, DELETE, OPTIONS",
   "Access-Control-Allow-Headers": "Content-Type, Authorization",
@@ -12,18 +12,25 @@ export const onRequest = async (context: any) => {
   }
 
   const url = new URL(context.request.url);
-  const backendUrl = new URL(url.pathname + url.search, BACKEND_URL);
+  const backendUrl = BACKEND_URL + url.pathname + url.search;
 
-  const res = await fetch(backendUrl.toString(), {
+  // Build clean headers — do NOT forward Host
+  const headers: Record<string, string> = {
+    "Content-Type": context.request.headers.get("Content-Type") || "application/json",
+  };
+  const auth = context.request.headers.get("Authorization");
+  if (auth) headers["Authorization"] = auth;
+
+  const isBodyMethod = !["GET", "HEAD"].includes(context.request.method);
+
+  const res = await fetch(backendUrl, {
     method: context.request.method,
-    headers: context.request.headers,
-    body:
-      context.request.method === "GET" || context.request.method === "HEAD"
-        ? undefined
-        : context.request.body,
+    headers,
+    body: isBodyMethod ? await context.request.text() : undefined,
   });
 
-  const newHeaders = new Headers(res.headers);
+  const newHeaders = new Headers();
+  newHeaders.set("Content-Type", res.headers.get("Content-Type") || "application/json");
   Object.entries(CORS_HEADERS).forEach(([k, v]) => newHeaders.set(k, v));
 
   return new Response(res.body, {
