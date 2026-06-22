@@ -1,7 +1,6 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Package, Activity, Shield, BarChart3, ClipboardList, HeartPulse } from 'lucide-react';
-import { API_URL } from '@/lib/constants';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { ROUTES } from '@/routes/routes';
@@ -125,8 +124,7 @@ export function LandingPage() {
   async function checkHealth() {
     setHealthStatus('checking');
     try {
-      const baseUrl = API_URL.replace(/\/api$/, '');
-      const res = await fetch(`${baseUrl}/health`);
+      const res = await fetch('/health');
       setHealthStatus(res.ok ? 'online' : 'offline');
     } catch {
       setHealthStatus('offline');
