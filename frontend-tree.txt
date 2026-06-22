@@ -1,0 +1,154 @@
+frontend/
+├── index.html                            # Vite entry HTML
+├── vite.config.ts                        # Vite configuration (aliases, plugins)
+├── tsconfig.json                         # TypeScript configuration
+├── tsconfig.app.json                     # App-specific TS config
+├── tailwind.config.ts                    # Tailwind CSS config (colors, darkMode: 'class')
+├── postcss.config.js                     # PostCSS (Tailwind + autoprefixer)
+├── eslint.config.mjs                     # ESLint configuration
+├── package.json                          # Dependencies and scripts
+├── package-lock.json                     # Locked dependency versions
+├── .env                                  # Environment variables (VITE_API_URL)
+├── .env.example                          # Example env file
+├── .gitignore                            # Git ignore rules
+├── Dockerfile                            # Production container
+├── tree.txt                              # This file structure
+│
+├── public/                               # Static assets (served as-is)
+│   ├── logo.png                          # App logo
+│   ├── small-logo.png                    # Small logo (navbar)
+│   ├── fav.png                       # Favicon
+│   └── bg-images/                        # Background images
+│       ├── bg-light.png                  # Light mode background
+│       └── bg-dark.png                   # Dark mode background
+│
+├── src/
+│   ├── main.tsx                          # App entry point (ReactDOM.createRoot)
+│   ├── App.tsx                           # Root component (providers + router)
+│   ├── globals.css                       # Tailwind + CSS variables + custom utilities
+│   ├── vite-env.d.ts                     # Vite type definitions
+│   │
+│   ├── routes/                           # React Router configuration
+│   │   ├── index.tsx                     # Route definitions (createBrowserRouter)
+│   │   ├── ProtectedRoute.tsx            # Auth guard wrapper
+│   │   └── routes.ts                     # ROUTES constant object
+│   │
+│   ├── pages/                            # Route-level page components
+│   │   ├── LoginPage.tsx                 # Login form page
+│   │   ├── DashboardPage.tsx             # Dashboard with summary cards
+│   │   ├── OrdersPage.tsx                # Order list (paginated, filtered)
+│   │   ├── OrderDetailPage.tsx           # Single order view + status actions
+│   │   ├── CreateOrderPage.tsx           # New order form
+│   │   └── NotFoundPage.tsx              # 404 page
+│   │
+│   ├── components/                       # Reusable UI components
+│   │   ├── Mask.tsx                      # Canvas particle animation overlay
+│   │   │
+│   │   ├── ui/                           # shadcn/ui primitives
+│   │   │   ├── button.tsx
+│   │   │   ├── card.tsx
+│   │   │   ├── input.tsx
+│   │   │   ├── label.tsx
+│   │   │   ├── badge.tsx
+│   │   │   ├── table.tsx
+│   │   │   ├── select.tsx
+│   │   │   ├── dialog.tsx
+│   │   │   ├── dropdown-menu.tsx
+│   │   │   ├── form.tsx
+│   │   │   └── toast.tsx
+│   │   │
+│   │   ├── layout/                       # Layout components
+│   │   │   ├── AppLayout.tsx             # Navbar + bg image + mask + main + footer
+│   │   │   ├── Navbar.tsx                # Top sticky nav (links, theme toggle, logout)
+│   │   │   ├── Footer.tsx                # Site footer with links and tech stack
+│   │   │   └── Header.tsx                # Legacy top bar (kept for reference)
+│   │   │
+│   │   └── shared/                       # Shared domain components
+│   │       ├── StatusBadge.tsx           # Order status with color coding
+│   │       ├── PageHeader.tsx            # Page title + breadcrumb
+│   │       └── LoadingSpinner.tsx        # Loading state indicator
+│   │
+│   ├── features/                         # Feature-based modules
+│   │   ├── auth/
+│   │   │   ├── api.ts                    # Login API call
+│   │   │   ├── mutations.ts             # useLoginMutation
+│   │   │   └── LoginForm.tsx            # Form component (react-hook-form + zod)
+│   │   │
+│   │   ├── orders/
+│   │   │   ├── api.ts                    # Orders CRUD API calls
+│   │   │   ├── queries.ts               # useOrdersQuery, useOrderQuery
+│   │   │   ├── mutations.ts             # useCreateOrder, useUpdateStatus
+│   │   │   └── schemas.ts              # Zod schemas for order forms
+│   │   │
+│   │   └── dashboard/
+│   │       ├── api.ts                    # Dashboard summary API call
+│   │       └── queries.ts               # useDashboardQuery
+│   │
+│   ├── stores/                           # Zustand stores (client state only)
+│   │   ├── useAuthStore.ts              # Token, user, login/logout actions
+│   │   └── useThemeStore.ts             # Dark/light mode toggle
+│   │
+│   ├── hooks/                            # Generic reusable hooks
+│   │   ├── useMobile.ts                 # Mobile breakpoint detection
+│   │   ├── usePagination.ts             # Cursor-based pagination state
+│   │   └── useDebounce.ts              # Debounced value (for search input)
+│   │
+│   ├── lib/                              # Utility libraries
+│   │   ├── api-client.ts                # ApiClient class (fetch wrapper + auth)
+│   │   ├── query-client.ts              # TanStack QueryClient configuration
+│   │   ├── utils.ts                     # cn() helper + general utilities
+│   │   └── constants.ts                 # API_URL, app-wide constants
+│   │
+│   ├── providers/                        # React context/provider wrappers
+│   │   └── Providers.tsx                # QueryClientProvider + Toaster
+│   │
+│   └── types/                            # TypeScript type definitions
+│       ├── auth.ts                       # User, LoginRequest, LoginResponse
+│       ├── order.ts                      # Order, OrderStatus, CreateOrderPayload
+│       ├── api.ts                        # ApiResponse<T>, PaginatedResponse<T>
+│       └── dashboard.ts                  # DashboardSummary
+│
+└── __tests__/                            # Frontend tests (if added)
+    └── setup.ts                          # Test configuration
+
+---
+
+## Architecture Decisions
+
+### Data flow:
+  Server data (orders, dashboard) → TanStack Query (features/*/queries.ts)
+  Client UI state (theme, auth, sidebar) → Zustand (stores/)
+
+### API communication:
+  lib/api-client.ts → FastAPI backend (http://EC2_IP:8000/api)
+  Features call api-client via features/*/api.ts
+  Pages consume data via features/*/queries.ts hooks
+
+### Forms:
+  React Hook Form + Zod schemas
+  Used for: login, create order
+  shadcn/ui Form components for consistent field rendering
+
+### Auth:
+  JWT token stored via Zustand (persisted to cookie)
+  ProtectedRoute component wraps private pages
+  ApiClient auto-injects Bearer token on all requests
+  401 response → clear token → redirect to /login
+
+### Layout:
+  AppLayout uses sticky Navbar (top nav) instead of sidebar — fewer nav items don't warrant a sidebar
+  Background images (light/dark variants) fixed behind content via CSS
+  Mask.tsx canvas particle animation layered above background
+  Footer included in AppLayout for all authenticated pages
+  LoginPage has its own full-screen background + Mask + theme toggle
+
+### Theme:
+  CSS variables (:root + .dark) with HSL values
+  Tailwind darkMode: 'class'
+  Zustand store toggles class on <html>, persists to localStorage
+
+### Feature module pattern:
+  features/<domain>/api.ts — typed fetch functions
+  features/<domain>/queries.ts — TanStack useQuery hooks
+  features/<domain>/mutations.ts — TanStack useMutation hooks
+  Pages import from features/ — never call lib/api-client.ts directly

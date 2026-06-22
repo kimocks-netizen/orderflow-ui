@@ -1,10 +1,10 @@
 import { useQuery } from "@tanstack/react-query";
-import { fetchReportsSummary } from "./api";
+import { fetchReportsSummary, type ReportsParams } from "./api";
 
-export function useReportsQuery() {
+export function useReportsQuery(params: ReportsParams = {}) {
   return useQuery({
-    queryKey: ["reports", "summary"],
-    queryFn: fetchReportsSummary,
+    queryKey: ["reports", "summary", params],
+    queryFn: () => fetchReportsSummary(params),
     staleTime: 60_000,
   });
 }

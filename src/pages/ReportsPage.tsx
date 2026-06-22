@@ -4,6 +4,7 @@ import {
   Tooltip, Legend, ResponsiveContainer,
 } from "recharts";
 import { useReportsQuery } from "@/features/reports/queries";
+import type { ReportsParams } from "@/features/reports/api";
 import { PageLoader } from "@/components/shared/LoadingSpinner";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
@@ -22,7 +23,8 @@ const SERIES: { key: SeriesKey; label: string; color: string }[] = [
 ];
 
 export function ReportsPage() {
-  const { data, isLoading, error } = useReportsQuery();
+  const [params] = useState<ReportsParams>({});
+  const { data, isLoading, error } = useReportsQuery(params);
   const [hidden, setHidden] = useState<Set<SeriesKey>>(new Set());
 
   const toggleSeries = (key: SeriesKey) =>

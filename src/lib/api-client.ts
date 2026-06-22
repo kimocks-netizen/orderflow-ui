@@ -41,6 +41,11 @@ class ApiClient {
 
     if (!res.ok) {
       const error = await res.json().catch(() => ({ detail: res.statusText }));
+      // Pydantic 422 returns detail as an array of field errors
+      if (Array.isArray(error.detail)) {
+        const first = error.detail[0];
+        throw new Error(first?.msg ?? `API error: ${res.status}`);
+      }
       throw new Error(error.detail || `API error: ${res.status}`);
     }
 
