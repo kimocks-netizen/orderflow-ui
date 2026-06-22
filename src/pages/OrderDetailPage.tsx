@@ -8,6 +8,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ROUTES } from "@/routes/routes";
 import { useEffect } from "react";
 import { useRecentOrdersStore } from "@/stores/useRecentOrdersStore";
+import { formatCurrency } from "@/lib/utils";
 import {
   Clock, CreditCard, Package, CheckCircle2, XCircle,
   ArrowRight, ChevronRight, ChevronLeft, User, Mail, DollarSign, CalendarDays,
@@ -103,7 +104,7 @@ export function OrderDetailPage() {
                   <div className="grid grid-cols-2 gap-3">
                     <InfoRow icon={User} label="Customer" value={order.customer_name} />
                     <InfoRow icon={Mail} label="Email" value={order.customer_email} />
-                    <InfoRow icon={DollarSign} label="Total" value={`$${order.total_amount.toFixed(2)}`} />
+                    <InfoRow icon={DollarSign} label="Total" value={formatCurrency(order.total_amount)} />
                     <InfoRow icon={CalendarDays} label="Placed" value={new Date(order.created_at).toLocaleDateString()} />
                   </div>
                 </div>
@@ -242,7 +243,7 @@ export function OrderDetailPage() {
               <Row label="Customer" value={order.customer_name} />
               <Row label="Email" value={order.customer_email} />
               <div className="border-t border-border my-1" />
-              <Row label="Total Amount" value={`$${order.total_amount.toFixed(2)}`} bold />
+              <Row label="Total Amount" value={formatCurrency(order.total_amount)} bold />
               <div className="border-t border-border my-1" />
               <Row label="Created" value={new Date(order.created_at).toLocaleString()} />
               <Row label="Last Updated" value={new Date(order.updated_at).toLocaleString()} />

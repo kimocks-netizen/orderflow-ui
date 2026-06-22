@@ -5,10 +5,15 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Link } from "react-router-dom";
 import { ROUTES } from "@/routes/routes";
 import {
+  BarChart, Bar, XAxis, YAxis, CartesianGrid,
+  Tooltip, ResponsiveContainer, Cell,
+} from "recharts";
+import {
   ShoppingCart, DollarSign, TrendingUp, Clock,
   ArrowRight, BarChart2, Package, CheckCircle2, XCircle, Eye, CreditCard,
 } from "lucide-react";
 import type { OrderStatus } from "@/types/order";
+import { formatCurrency } from "@/lib/utils";
 
 const statusConfig: Record<
   OrderStatus,
@@ -59,7 +64,14 @@ export function DashboardPage() {
   if (!data) return null;
 
   const totalForBar = Math.max(data.total_orders, 1);
-  const maxPerDay = Math.max(...(data.orders_per_day?.map((d) => d.count) ?? [1]), 1);
+  const weekTotal = data.orders_per_day?.reduce((s, d) => s + d.count, 0) ?? 0;
+
+  const chartData = data.orders_per_day?.map((d, i) => ({
+    ...d,
+    label: new Date(d.date + "T00:00:00").toLocaleDateString("en-US", { weekday: "short" }),
+    isToday: i === (data.orders_per_day.length - 1),
+    pct: weekTotal > 0 ? Math.round((d.count / weekTotal) * 100) : 0,
+  })) ?? [];
 
   const summaryCards = [
     {
@@ -72,7 +84,7 @@ export function DashboardPage() {
     },
     {
       title: "Total Revenue",
-      value: `$${data.total_revenue.toLocaleString("en-US", { minimumFractionDigits: 2 })}`,
+      value: formatCurrency(data.total_revenue),
       icon: DollarSign,
       description: "Excl. cancelled",
       accent: "text-emerald-500",
@@ -80,7 +92,7 @@ export function DashboardPage() {
     },
     {
       title: "Avg Order Value",
-      value: `$${data.avg_order_value.toLocaleString("en-US", { minimumFractionDigits: 2 })}`,
+      value: formatCurrency(data.avg_order_value),
       icon: BarChart2,
       description: "Excl. cancelled",
       accent: "text-purple-500",
@@ -174,40 +186,81 @@ export function DashboardPage() {
           </CardContent>
         </Card>
 
-        {/* Orders per day sparkline */}
+        {/* Orders per day */}
         <Card className="glass-card border-0 shadow-sm lg:col-span-2">
-          <CardHeader className="pb-3">
-            <CardTitle className="text-base font-semibold text-gray-900 dark:text-white">Orders per Day</CardTitle>
-            <p className="text-xs text-muted-foreground">Last 7 days</p>
-          </CardHeader>
-          <CardContent>
-            {data.orders_per_day && data.orders_per_day.length > 0 ? (
-              <div className="space-y-3">
-                <div className="flex items-end gap-1.5 h-28">
-                  {data.orders_per_day.map((day, i) => {
-                    const heightPct = maxPerDay > 0 ? (day.count / maxPerDay) * 100 : 0;
-                    const isToday = i === data.orders_per_day.length - 1;
-                    return (
-                      <div key={day.date} className="flex-1 flex flex-col items-center gap-1">
-                        <span className="text-[10px] font-bold text-muted-foreground">{day.count > 0 ? day.count : ''}</span>
-                        <div className="w-full flex items-end" style={{ height: '80px' }}>
-                          <div
-                            className={`w-full rounded-t-md transition-all duration-500 ${isToday ? 'bg-primary' : 'bg-primary/30'}`}
-                            style={{ height: `${Math.max(heightPct, day.count > 0 ? 8 : 2)}%` }}
-                          />
-                        </div>
-                        <span className="text-[9px] text-muted-foreground">
-                          {new Date(day.date).toLocaleDateString('en-US', { weekday: 'short' })}
-                        </span>
-                      </div>
-                    );
-                  })}
-                </div>
-                <div className="pt-2 border-t border-gray-200 dark:border-slate-700 flex items-center justify-between text-xs text-muted-foreground">
-                  <span>Today: <span className="font-semibold text-primary">{data.orders_today}</span> orders</span>
-                  <span>7-day total: <span className="font-semibold text-foreground">{data.orders_per_day.reduce((s, d) => s + d.count, 0)}</span></span>
-                </div>
+          <CardHeader className="pb-1">
+            <div className="flex items-start justify-between">
+              <div>
+                <CardTitle className="text-base font-semibold text-gray-900 dark:text-white">Orders per Day</CardTitle>
+                <p className="text-xs text-muted-foreground mt-0.5">Last 7 days</p>
               </div>
+              <div className="text-right">
+                <p className="text-xl font-bold text-gray-900 dark:text-white">{weekTotal}</p>
+                <p className="text-[10px] text-muted-foreground">week total</p>
+              </div>
+            </div>
+          </CardHeader>
+          <CardContent className="pt-2 pb-3">
+            {chartData.length > 0 ? (
+              <>
+                <div className="h-36">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <BarChart data={chartData} margin={{ top: 4, right: 4, left: 0, bottom: 0 }} barCategoryGap="30%">
+                      <CartesianGrid strokeDasharray="3 3" stroke="currentColor" strokeOpacity={0.06} vertical={false} />
+                      <XAxis
+                        dataKey="label"
+                        tick={{ fontSize: 10, fill: "currentColor", opacity: 0.5 }}
+                        tickLine={false}
+                        axisLine={false}
+                      />
+                      <YAxis
+                        tick={{ fontSize: 10, fill: "currentColor", opacity: 0.5 }}
+                        tickLine={false}
+                        axisLine={false}
+                        allowDecimals={false}
+                        width={28}
+                      />
+                      <Tooltip
+                        cursor={{ fill: "currentColor", opacity: 0.04 }}
+                        content={({ active, payload }) => {
+                          if (!active || !payload?.length) return null;
+                          const d = payload[0].payload;
+                          return (
+                            <div className="bg-card border border-border rounded-lg shadow-lg px-3 py-2.5 text-xs space-y-1 min-w-[130px]">
+                              <p className="font-semibold text-foreground text-[11px]">
+                                {new Date(d.date + "T00:00:00").toLocaleDateString("en-US", { weekday: "long", month: "short", day: "numeric" })}
+                              </p>
+                              <div className="flex justify-between gap-4">
+                                <span className="text-muted-foreground">Orders</span>
+                                <span className="font-bold text-foreground">{d.count}</span>
+                              </div>
+                              <div className="flex justify-between gap-4">
+                                <span className="text-muted-foreground">% of week</span>
+                                <span className="font-semibold text-primary">{d.pct}%</span>
+                              </div>
+                              <div className="flex justify-between gap-4">
+                                <span className="text-muted-foreground">Week total</span>
+                                <span className="font-semibold text-foreground">{weekTotal}</span>
+                              </div>
+                              {d.isToday && <p className="text-[10px] text-primary font-semibold pt-0.5">Today</p>}
+                            </div>
+                          );
+                        }}
+                      />
+                      <Bar dataKey="count" radius={[4, 4, 0, 0]} maxBarSize={36}>
+                        {chartData.map((d) => (
+                          <Cell key={d.date} fill={d.isToday ? "hsl(var(--primary))" : "hsl(var(--primary) / 0.35)"} />
+                        ))}
+                      </Bar>
+                    </BarChart>
+                  </ResponsiveContainer>
+                </div>
+                <div className="mt-2 pt-2 border-t border-border/50 flex items-center justify-between text-xs text-muted-foreground">
+                  <span>Today: <span className="font-semibold text-primary">{data.orders_today}</span></span>
+                  <span>Avg/day: <span className="font-semibold text-foreground">{(weekTotal / 7).toFixed(1)}</span></span>
+                  <span>Peak: <span className="font-semibold text-foreground">{Math.max(...chartData.map(d => d.count))}</span></span>
+                </div>
+              </>
             ) : (
               <p className="text-sm text-muted-foreground text-center py-8">No data</p>
             )}
@@ -270,7 +323,7 @@ export function DashboardPage() {
                         <div className="flex items-center gap-2 mt-0.5">
                           <span className="text-xs text-muted-foreground">#{order.id}</span>
                           <span className="text-muted-foreground">·</span>
-                          <span className="text-xs text-muted-foreground">${order.total_amount.toFixed(2)}</span>
+                          <span className="text-xs text-muted-foreground">{formatCurrency(order.total_amount)}</span>
                           <span className="text-muted-foreground">·</span>
                           <span className={`text-[10px] font-semibold capitalize px-1.5 py-0.5 rounded-full ${statusCfg.badge}`}>{order.status}</span>
                         </div>

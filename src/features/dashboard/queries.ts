@@ -5,6 +5,6 @@ export function useDashboardQuery() {
   return useQuery({
     queryKey: ["dashboard", "summary"],
     queryFn: fetchDashboardSummary,
-    staleTime: 60_000,
+    staleTime: 10_000,
   });
 }

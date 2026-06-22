@@ -95,6 +95,10 @@
   border-color: rgba(51, 65, 85, 0.8);
 }
 
+.dark input[type="date"] {
+  color-scheme: dark;
+}
+
 @utility status-badge {
   display: inline-flex;
   align-items: center;

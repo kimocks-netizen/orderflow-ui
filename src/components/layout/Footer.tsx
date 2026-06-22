@@ -2,19 +2,24 @@ import { GitBranch, Mail, LayoutDashboard, ShoppingCart, PlusCircle, Lock, BarCh
 import { Link } from 'react-router-dom';
 import { ROUTES } from '@/routes/routes';
 import { useAuthStore } from '@/stores/useAuthStore';
+import { useInView } from '@/hooks/useInView';
 
 export function Footer() {
   const { isAuthenticated } = useAuthStore();
+  const { ref, inView } = useInView(0.1);
 
   return (
-    <footer className="backdrop-blur-md bg-white/60 dark:bg-slate-900/70 border-t border-gray-300 dark:border-slate-700/50 py-10 relative z-10 mt-auto">
+    <footer ref={ref} className="backdrop-blur-md bg-white/60 dark:bg-slate-900/70 border-t border-gray-300 dark:border-slate-700/50 py-10 relative z-10 mt-auto">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+
           {/* Brand */}
-          <div className="lg:col-span-2">
+          <div
+            className={`lg:col-span-2 transition-all duration-700 ${ inView ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8' }`}
+            style={{ transitionDelay: '0ms' }}
+          >
             <div className="flex items-center gap-3 mb-4">
               <img src="/logo.png" alt="OrderFlow" className="h-12 object-contain" />
-              {/* <span className="font-bold text-xl text-gray-900 dark:text-white">OrderFlow</span> */}
             </div>
             <p className="text-gray-600 dark:text-gray-300 text-sm mb-4">
               An internal order management system for operations teams. Manage customer orders,
@@ -33,7 +38,10 @@ export function Footer() {
           </div>
 
           {/* Quick Links */}
-          <div>
+          <div
+            className={`transition-all duration-700 ${ inView ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8' }`}
+            style={{ transitionDelay: '150ms' }}
+          >
             <h3 className="text-base font-semibold mb-4 text-gray-900 dark:text-white">Quick Links</h3>
             <ul className="space-y-2 text-gray-600 dark:text-gray-300 text-sm">
               <li className="flex items-center gap-2">
@@ -64,17 +72,33 @@ export function Footer() {
           </div>
 
           {/* Stack */}
-          <div>
+          <div
+            className={`transition-all duration-700 ${ inView ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8' }`}
+            style={{ transitionDelay: '300ms' }}
+          >
             <h3 className="text-base font-semibold mb-4 text-gray-900 dark:text-white">Tech Stack</h3>
             <ul className="space-y-2 text-gray-600 dark:text-gray-300 text-sm">
-              {['React + Vite', 'TanStack Query', 'Zustand', 'SQLite + Express', 'shadcn/ui'].map(tech => (
-                <li key={tech} className="hover:text-primary transition-all hover:translate-x-2 cursor-default">{tech}</li>
+              {['React + Vite', 'TanStack Query', 'Zustand', 'SQLite + FastAPI', 'shadcn/ui'].map((tech, i) => (
+                <li
+                  key={tech}
+                  className={`hover:text-primary transition-all duration-500 hover:translate-x-2 cursor-default ${
+                    inView ? 'opacity-100 translate-x-0' : 'opacity-0 -translate-x-4'
+                  }`}
+                  style={{ transitionDelay: `${300 + i * 60}ms` }}
+                >
+                  {tech}
+                </li>
               ))}
             </ul>
           </div>
         </div>
 
-        <div className="border-t border-gray-300 dark:border-slate-700/50 mt-8 pt-6 text-center">
+        <div
+          className={`border-t border-gray-300 dark:border-slate-700/50 mt-8 pt-6 text-center transition-all duration-700 ${
+            inView ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'
+          }`}
+          style={{ transitionDelay: '450ms' }}
+        >
           <p className="text-gray-600 dark:text-gray-400 text-sm">
             &copy; {new Date().getFullYear()} OrderFlow — Full Stack Technical Assessment.{' '}
             Developed by{' '}

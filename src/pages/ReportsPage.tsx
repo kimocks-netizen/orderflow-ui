@@ -1,15 +1,20 @@
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import {
-  LineChart, Line, XAxis, YAxis, CartesianGrid,
+  LineChart, Line, BarChart, Bar,
+  XAxis, YAxis, CartesianGrid,
   Tooltip, Legend, ResponsiveContainer,
 } from "recharts";
 import { useReportsQuery } from "@/features/reports/queries";
-import type { ReportsParams } from "@/features/reports/api";
 import { PageLoader } from "@/components/shared/LoadingSpinner";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { formatCurrency } from "@/lib/utils";
 import {
   TrendingUp, TrendingDown, PackageCheck, XCircle,
   Clock, DollarSign, Users, AlertTriangle, CalendarDays,
+  BarChart2, LineChart as LineChartIcon, X, ChevronLeft,
 } from "lucide-react";
 
 type SeriesKey = "all" | "pending" | "paid" | "shipped" | "cancelled";
@@ -23,9 +28,15 @@ const SERIES: { key: SeriesKey; label: string; color: string }[] = [
 ];
 
 export function ReportsPage() {
-  const [params] = useState<ReportsParams>({});
-  const { data, isLoading, error } = useReportsQuery(params);
+  const navigate = useNavigate();
+  const [dateFrom, setDateFrom] = useState("");
+  const [dateTo, setDateTo] = useState("");
+  const [chartType, setChartType] = useState<"bar" | "line">("bar");
   const [hidden, setHidden] = useState<Set<SeriesKey>>(new Set());
+  const { data, isLoading, error } = useReportsQuery({
+    date_from: dateFrom || undefined,
+    date_to: dateTo || undefined,
+  });
 
   const toggleSeries = (key: SeriesKey) =>
     setHidden((prev) => {
@@ -47,22 +58,60 @@ export function ReportsPage() {
     label: new Date(d.date + "T00:00:00").toLocaleDateString("en-US", { month: "short", day: "numeric" }),
   }));
 
+  const xInterval = chartData.length <= 10 ? 0 : chartData.length <= 20 ? 1 : 4;
+  const chartKey = `${dateFrom}-${dateTo}-${chartData.length}-${chartType}`;
+  const rangeLabel = dateFrom || dateTo
+    ? `${dateFrom || "…"} → ${dateTo || "today"} (${chartData.length} day${chartData.length !== 1 ? "s" : ""})`
+    : "Last 30 days";
+
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="text-2xl font-semibold tracking-tight text-gray-900 dark:text-white">Reports & Analyses</h1>
-        <p className="text-sm text-muted-foreground mt-0.5">30-day order trends and operational insights</p>
+      <div className="flex flex-wrap items-start justify-between gap-4">
+        <div>
+          <h1 className="text-2xl font-semibold tracking-tight text-gray-900 dark:text-white">Reports & Analyses</h1>
+          <p className="text-sm text-muted-foreground mt-0.5">{rangeLabel} — order trends and operational insights</p>
+        </div>
+        <div className="flex flex-wrap gap-3 items-center">
+          <Input type="date" value={dateFrom} onChange={(e) => setDateFrom(e.target.value)} className="w-40" />
+          <Input type="date" value={dateTo} min={dateFrom} onChange={(e) => setDateTo(e.target.value)} className="w-40" />
+          {(dateFrom || dateTo) && (
+            <Button variant="ghost" size="sm" onClick={() => { setDateFrom(""); setDateTo(""); }} className="gap-1.5 text-muted-foreground">
+              <X className="h-3.5 w-3.5" /> Clear
+            </Button>
+          )}
+          <Button variant="outline" size="sm" onClick={() => navigate(-1)} className="gap-1.5">
+            <ChevronLeft className="h-4 w-4" /> Back
+          </Button>
+        </div>
       </div>
 
-      {/* Line chart */}
+      {/* Chart */}
       <Card className="glass-card border-0 shadow-sm">
         <CardHeader className="pb-2">
           <div className="flex items-start justify-between flex-wrap gap-3">
             <div>
               <CardTitle className="text-base font-semibold text-gray-900 dark:text-white">Orders Over Time</CardTitle>
-              <p className="text-xs text-muted-foreground mt-0.5">Last 30 days — click legend labels to show/hide a series</p>
+              <p className="text-xs text-muted-foreground mt-0.5">{rangeLabel} — click legend labels to show/hide a series</p>
             </div>
-            {/* Filter pills */}
+            <div className="flex flex-wrap items-center gap-3">
+              <div className="flex rounded-md border border-border overflow-hidden">
+                <button
+                  onClick={() => setChartType("bar")}
+                  className={`flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium transition-colors ${
+                    chartType === "bar" ? "bg-primary text-white" : "text-muted-foreground hover:bg-muted"
+                  }`}
+                >
+                  <BarChart2 className="h-3.5 w-3.5" /> Bar
+                </button>
+                <button
+                  onClick={() => setChartType("line")}
+                  className={`flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium transition-colors ${
+                    chartType === "line" ? "bg-primary text-white" : "text-muted-foreground hover:bg-muted"
+                  }`}
+                >
+                  <LineChartIcon className="h-3.5 w-3.5" /> Line
+                </button>
+              </div>
             <div className="flex flex-wrap gap-2">
               {SERIES.map((s) => {
                 const isHidden = hidden.has(s.key);
@@ -82,58 +131,35 @@ export function ReportsPage() {
                 );
               })}
             </div>
+            </div>
           </div>
         </CardHeader>
         <CardContent className="pt-2">
-          <div className="h-72">
+          <div key={chartKey} className="h-72">
             <ResponsiveContainer width="100%" height="100%">
-              <LineChart data={chartData} margin={{ top: 8, right: 16, left: -8, bottom: 0 }}>
-                <CartesianGrid strokeDasharray="3 3" stroke="currentColor" strokeOpacity={0.08} />
-                <XAxis
-                  dataKey="label"
-                  tick={{ fontSize: 10, fill: "currentColor", opacity: 0.5 }}
-                  tickLine={false}
-                  axisLine={false}
-                  interval={4}
-                />
-                <YAxis
-                  tick={{ fontSize: 10, fill: "currentColor", opacity: 0.5 }}
-                  tickLine={false}
-                  axisLine={false}
-                  allowDecimals={false}
-                />
-                <Tooltip
-                  contentStyle={{
-                    background: "var(--color-card)",
-                    border: "1px solid var(--color-border)",
-                    borderRadius: "0.5rem",
-                    fontSize: 12,
-                  }}
-                  labelStyle={{ fontWeight: 600, marginBottom: 4 }}
-                />
-                <Legend
-                  wrapperStyle={{ fontSize: 11, paddingTop: 12 }}
-                  onClick={(e) => toggleSeries(e.dataKey as SeriesKey)}
-                  formatter={(value, entry) => (
-                    <span style={{ color: hidden.has(entry.dataKey as SeriesKey) ? "#9ca3af" : entry.color, textDecoration: hidden.has(entry.dataKey as SeriesKey) ? "line-through" : "none" }}>
-                      {value}
-                    </span>
-                  )}
-                />
-                {SERIES.map((s) => (
-                  <Line
-                    key={s.key}
-                    type="monotone"
-                    dataKey={s.key}
-                    name={s.label}
-                    stroke={s.color}
-                    strokeWidth={s.key === "all" ? 2.5 : 1.5}
-                    dot={false}
-                    activeDot={{ r: 4 }}
-                    hide={hidden.has(s.key)}
-                  />
-                ))}
-              </LineChart>
+              {chartType === "bar" ? (
+                <BarChart data={chartData} margin={{ top: 8, right: 16, left: -8, bottom: 0 }}>
+                  <CartesianGrid strokeDasharray="3 3" stroke="currentColor" strokeOpacity={0.08} />
+                  <XAxis dataKey="label" tick={{ fontSize: 10, fill: "currentColor", opacity: 0.5 }} tickLine={false} axisLine={false} interval={xInterval} />
+                  <YAxis tick={{ fontSize: 10, fill: "currentColor", opacity: 0.5 }} tickLine={false} axisLine={false} allowDecimals={false} />
+                  <Tooltip contentStyle={{ background: "var(--color-card)", border: "1px solid var(--color-border)", borderRadius: "0.5rem", fontSize: 12 }} labelStyle={{ fontWeight: 600, marginBottom: 4 }} />
+                  <Legend wrapperStyle={{ fontSize: 11, paddingTop: 12 }} onClick={(e) => toggleSeries(e.dataKey as SeriesKey)} formatter={(value, entry) => (<span style={{ color: hidden.has(entry.dataKey as SeriesKey) ? "#9ca3af" : entry.color, textDecoration: hidden.has(entry.dataKey as SeriesKey) ? "line-through" : "none" }}>{value}</span>)} />
+                  {SERIES.map((s) => (
+                    <Bar key={s.key} dataKey={s.key} name={s.label} fill={s.color} hide={hidden.has(s.key)} radius={[2, 2, 0, 0]} maxBarSize={12} />
+                  ))}
+                </BarChart>
+              ) : (
+                <LineChart data={chartData} margin={{ top: 8, right: 16, left: -8, bottom: 0 }}>
+                  <CartesianGrid strokeDasharray="3 3" stroke="currentColor" strokeOpacity={0.08} />
+                  <XAxis dataKey="label" tick={{ fontSize: 10, fill: "currentColor", opacity: 0.5 }} tickLine={false} axisLine={false} interval={xInterval} />
+                  <YAxis tick={{ fontSize: 10, fill: "currentColor", opacity: 0.5 }} tickLine={false} axisLine={false} allowDecimals={false} />
+                  <Tooltip contentStyle={{ background: "var(--color-card)", border: "1px solid var(--color-border)", borderRadius: "0.5rem", fontSize: 12 }} labelStyle={{ fontWeight: 600, marginBottom: 4 }} />
+                  <Legend wrapperStyle={{ fontSize: 11, paddingTop: 12 }} onClick={(e) => toggleSeries(e.dataKey as SeriesKey)} formatter={(value, entry) => (<span style={{ color: hidden.has(entry.dataKey as SeriesKey) ? "#9ca3af" : entry.color, textDecoration: hidden.has(entry.dataKey as SeriesKey) ? "line-through" : "none" }}>{value}</span>)} />
+                  {SERIES.map((s) => (
+                    <Line key={s.key} type="monotone" dataKey={s.key} name={s.label} stroke={s.color} strokeWidth={s.key === "all" ? 2.5 : 1.5} dot={false} activeDot={{ r: 4 }} hide={hidden.has(s.key)} />
+                  ))}
+                </LineChart>
+              )}
             </ResponsiveContainer>
           </div>
         </CardContent>
@@ -160,8 +186,8 @@ export function ReportsPage() {
               }
               body={
                 revenueChange !== null
-                  ? `$${data.revenueThisMonth.toFixed(2)} this month vs $${data.revenuePrevMonth.toFixed(2)} last month.`
-                  : `$${data.revenueThisMonth.toFixed(2)} in revenue so far this month.`
+                  ? `${formatCurrency(data.revenueThisMonth)} this month vs ${formatCurrency(data.revenuePrevMonth)} last month.`
+                  : `${formatCurrency(data.revenueThisMonth)} in revenue so far this month.`
               }
             />
 
@@ -217,7 +243,7 @@ export function ReportsPage() {
                 icon={Users}
                 color="primary"
                 title={`Top customer: ${data.topCustomers[0].name}`}
-                body={`${data.topCustomers[0].orders} order${data.topCustomers[0].orders !== 1 ? "s" : ""} — $${data.topCustomers[0].total.toFixed(2)} total spend.`}
+                body={`${data.topCustomers[0].orders} order${data.topCustomers[0].orders !== 1 ? "s" : ""} — ${formatCurrency(data.topCustomers[0].total)} total spend.`}
               />
             )}
 
@@ -271,7 +297,7 @@ export function ReportsPage() {
                       <td className="px-5 py-3 text-muted-foreground">{c.email}</td>
                       <td className="px-5 py-3 text-right font-semibold">{c.orders}</td>
                       <td className="px-5 py-3 text-right font-semibold text-gray-900 dark:text-white">
-                        ${c.total.toFixed(2)}
+                        {formatCurrency(c.total)}
                       </td>
                     </tr>
                   ))}

@@ -1,8 +1,9 @@
 import { Link, useLocation, useNavigate } from 'react-router-dom';
-import { LayoutDashboard, ShoppingCart, PlusCircle, LogOut, Sun, Moon, ChevronLeft, ChevronRight, BarChart3 } from 'lucide-react';
+import { LayoutDashboard, ShoppingCart, PlusCircle, LogOut, Sun, Moon, PanelLeftClose, PanelLeftOpen, BarChart3 } from 'lucide-react';
 import { useAuthStore } from '@/stores/useAuthStore';
 import { useThemeStore } from '@/stores/useThemeStore';
 import { ROUTES } from '@/routes/routes';
+import { toast } from 'sonner';
 
 const navItems = [
   { to: ROUTES.DASHBOARD,    icon: LayoutDashboard, label: 'Dashboard' },
@@ -22,25 +23,43 @@ export function Sidebar({ collapsed, onToggle }: SidebarProps) {
   const { logout, user } = useAuthStore();
   const { isDark, toggleTheme } = useThemeStore();
 
-  const handleLogout = () => { logout(); navigate(ROUTES.LOGIN); };
+  const handleLogout = () => {
+    const name = user?.name;
+    logout();
+    navigate(ROUTES.LOGIN);
+    toast.success(name ? `Goodbye, ${name}!` : 'Logged out successfully');
+  };
 
   return (
     <aside className={`${collapsed ? 'w-14' : 'w-64'} shrink-0 flex flex-col h-full backdrop-blur-md bg-white/80 dark:bg-slate-900/90 border-r border-gray-200 dark:border-slate-700/50 transition-all duration-300`}>
 
       {/* Logo + toggle */}
-      <div className={`flex items-center border-b border-gray-200 dark:border-slate-700/50 h-14 ${collapsed ? 'justify-center px-0' : 'justify-between px-4'}`}>
+      <div className={`relative flex items-center border-b border-gray-200 dark:border-slate-700/50 h-14 ${collapsed ? 'justify-center px-0' : 'justify-between px-4'}`}>
         {!collapsed && (
           <Link to={ROUTES.DASHBOARD}>
             <img src="/logo.png" alt="OrderFlow" className="h-8 object-contain" />
           </Link>
         )}
-        <button
-          onClick={onToggle}
-          className="p-1.5 rounded-lg text-gray-500 dark:text-gray-400 hover:bg-gray-900/8 dark:hover:bg-white/8 transition-colors"
-          aria-label="Toggle sidebar"
-        >
-          {collapsed ? <ChevronRight className="h-4 w-4" /> : <ChevronLeft className="h-4 w-4" />}
-        </button>
+        {collapsed ? (
+          <div className="relative group/logo flex items-center justify-center w-full h-full">
+            <img src="/small-logo.png" alt="OrderFlow" className="h-7 w-7 object-contain transition-opacity duration-200 group-hover/logo:opacity-0" />
+            <button
+              onClick={onToggle}
+              aria-label="Expand sidebar"
+              className="absolute inset-0 flex items-center justify-center opacity-0 group-hover/logo:opacity-100 transition-opacity duration-200 text-gray-500 dark:text-gray-400 hover:text-primary dark:hover:text-primary"
+            >
+              <PanelLeftOpen className="h-4 w-4" />
+            </button>
+          </div>
+        ) : (
+          <button
+            onClick={onToggle}
+            className="p-1.5 rounded-lg text-gray-500 dark:text-gray-400 hover:bg-gray-900/8 dark:hover:bg-white/8 transition-colors"
+            aria-label="Collapse sidebar"
+          >
+            <PanelLeftClose className="h-4 w-4" />
+          </button>
+        )}
       </div>
 
       {/* Nav items */}

@@ -10,6 +10,8 @@ export function useCreateOrder() {
     mutationFn: (data: CreateOrderPayload) => createOrder(data),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ordersKeys.all });
+      qc.invalidateQueries({ queryKey: ["dashboard"] });
+      qc.invalidateQueries({ queryKey: ["reports"] });
       toast.success('Order created successfully');
     },
     onError: (e: Error) => {
@@ -25,6 +27,8 @@ export function useUpdateOrderStatus(id: number | string) {
     onSuccess: (updated) => {
       qc.setQueryData(ordersKeys.detail(id), updated);
       qc.invalidateQueries({ queryKey: ordersKeys.all });
+      qc.invalidateQueries({ queryKey: ["dashboard"] });
+      qc.invalidateQueries({ queryKey: ["reports"] });
       toast.success(`Order status updated to ${updated.status}`);
     },
     onError: (e: Error) => {

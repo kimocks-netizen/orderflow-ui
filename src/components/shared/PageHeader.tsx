@@ -1,5 +1,6 @@
-import { Link } from "react-router-dom";
-import { ChevronRight } from "lucide-react";
+import { Link, useNavigate } from "react-router-dom";
+import { ChevronLeft, ChevronRight } from "lucide-react";
+import { Button } from "@/components/ui/button";
 
 interface Breadcrumb {
   label: string;
@@ -10,9 +11,11 @@ interface PageHeaderProps {
   title: string;
   breadcrumbs?: Breadcrumb[];
   actions?: React.ReactNode;
+  showBack?: boolean;
 }
 
-export function PageHeader({ title, breadcrumbs, actions }: PageHeaderProps) {
+export function PageHeader({ title, breadcrumbs, actions, showBack }: PageHeaderProps) {
+  const navigate = useNavigate();
   return (
     <div className="flex items-start justify-between mb-6">
       <div className="flex flex-col gap-1">
@@ -34,7 +37,14 @@ export function PageHeader({ title, breadcrumbs, actions }: PageHeaderProps) {
         )}
         <h1 className="text-2xl font-semibold tracking-tight">{title}</h1>
       </div>
-      {actions && <div className="flex items-center gap-2">{actions}</div>}
+      <div className="flex items-center gap-2">
+        {actions}
+        {showBack && (
+          <Button variant="outline" size="sm" onClick={() => navigate(-1)} className="gap-1.5">
+            <ChevronLeft className="h-4 w-4" /> Back
+          </Button>
+        )}
+      </div>
     </div>
   );
 }

@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useSearchParams, Link, useNavigate } from "react-router-dom";
-import { Plus, Search, Eye } from "lucide-react";
+import { Plus, Search, Eye, X } from "lucide-react";
 import { useOrdersQuery } from "@/features/orders/queries";
 import { PageHeader } from "@/components/shared/PageHeader";
 import { StatusBadge } from "@/components/shared/StatusBadge";
@@ -11,9 +11,25 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Card } from "@/components/ui/card";
 import { useDebounce } from "@/hooks/useDebounce";
+import { formatCurrency } from "@/lib/utils";
 import { usePagination } from "@/hooks/usePagination";
 import { ROUTES } from "@/routes/routes";
 import type { Order, OrderStatus } from "@/types/order";
+
+function Highlight({ text, query }: { text: string; query: string }) {
+  if (!query.trim()) return <>{text}</>;
+  const regex = new RegExp(`(${query.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')})`, 'gi');
+  const parts = text.split(regex);
+  return (
+    <>
+      {parts.map((part, i) =>
+        regex.test(part)
+          ? <mark key={i} className="bg-yellow-200 dark:bg-yellow-500/40 text-yellow-900 dark:text-yellow-100 rounded-sm px-0.5">{part}</mark>
+          : part
+      )}
+    </>
+  );
+}
 
 const STATUS_OPTIONS: { value: string; label: string }[] = [
   { value: "all", label: "All statuses" },
@@ -28,31 +44,38 @@ export function OrdersPage() {
   const [searchParams, setSearchParams] = useSearchParams();
   const [search, setSearch] = useState(searchParams.get("search") ?? "");
   const [status, setStatus] = useState(searchParams.get("status") ?? "all");
+  const [dateFrom, setDateFrom] = useState(searchParams.get("date_from") ?? "");
+  const [dateTo, setDateTo] = useState(searchParams.get("date_to") ?? "");
   const debouncedSearch = useDebounce(search, 300);
   const { page, pageSize, goToPage, reset, changePageSize } = usePagination();
 
   useEffect(() => {
     reset();
-  }, [debouncedSearch, status, reset]);
+  }, [debouncedSearch, status, dateFrom, dateTo]); // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
     const params: Record<string, string> = {};
     if (debouncedSearch) params.search = debouncedSearch;
     if (status !== "all") params.status = status;
+    if (dateFrom) params.date_from = dateFrom;
+    if (dateTo) params.date_to = dateTo;
     setSearchParams(params, { replace: true });
-  }, [debouncedSearch, status, setSearchParams]);
+  }, [debouncedSearch, status, dateFrom, dateTo, setSearchParams]);
 
   const { data, isLoading, error } = useOrdersQuery({
     page,
     page_size: pageSize,
     search: debouncedSearch || undefined,
     status,
+    date_from: dateFrom || undefined,
+    date_to: dateTo || undefined,
   });
 
   return (
     <div>
       <PageHeader
         title="Orders"
+        showBack
         actions={
           <Button asChild size="sm">
             <Link to={ROUTES.CREATE_ORDER}>
@@ -63,15 +86,24 @@ export function OrdersPage() {
         }
       />
 
-      <div className="flex gap-3 mb-4">
-        <div className="relative flex-1 max-w-sm">
+      <div className="flex flex-wrap gap-3 mb-4">
+        <div className="relative flex-1 min-w-48 max-w-sm">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
           <Input
             placeholder="Search by name or email…"
             value={search}
             onChange={(e: React.ChangeEvent<HTMLInputElement>) => setSearch(e.target.value)}
-            className="pl-9"
+            className="pl-9 pr-8"
           />
+          {search && (
+            <button
+              onClick={() => setSearch("")}
+              className="absolute right-2.5 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
+              aria-label="Clear search"
+            >
+              <X className="h-3.5 w-3.5" />
+            </button>
+          )}
         </div>
         <Select value={status} onValueChange={(v: string) => setStatus(v)}>
           <SelectTrigger className="w-44">
@@ -85,6 +117,13 @@ export function OrdersPage() {
             ))}
           </SelectContent>
         </Select>
+        <Input type="date" value={dateFrom} onChange={(e) => setDateFrom(e.target.value)} className="w-40" />
+        <Input type="date" value={dateTo} min={dateFrom} onChange={(e) => setDateTo(e.target.value)} className="w-40" />
+        {(dateFrom || dateTo) && (
+          <Button variant="ghost" size="sm" onClick={() => { setDateFrom(""); setDateTo(""); }} className="gap-1.5 text-muted-foreground">
+            <X className="h-3.5 w-3.5" /> Clear dates
+          </Button>
+        )}
       </div>
 
       <Card className="hover:shadow-md transition-shadow duration-200">
@@ -96,7 +135,7 @@ export function OrdersPage() {
           <div className="flex flex-col items-center justify-center h-48 text-muted-foreground text-sm gap-2">
             <span>No orders found</span>
             {(debouncedSearch || status !== "all") && (
-              <button onClick={() => { setSearch(""); setStatus("all"); }} className="text-primary hover:underline text-xs">
+              <button onClick={() => { setSearch(""); setStatus("all"); setDateFrom(""); setDateTo(""); }} className="text-primary hover:underline text-xs">
                 Clear filters
               </button>
             )}
@@ -119,9 +158,9 @@ export function OrdersPage() {
                 {data.items.map((order: Order) => (
                   <TableRow key={order.id} className="cursor-pointer hover:bg-muted/80 dark:hover:bg-muted/50 hover:scale-[1.01] transition-all duration-150" onClick={() => navigate(ROUTES.ORDER_DETAIL(order.id))}>
                     <TableCell className="font-mono text-xs text-muted-foreground">#{order.id}</TableCell>
-                    <TableCell className="font-medium">{order.customer_name}</TableCell>
-                    <TableCell className="text-muted-foreground text-sm">{order.customer_email}</TableCell>
-                    <TableCell>${order.total_amount.toFixed(2)}</TableCell>
+                    <TableCell className="font-medium"><Highlight text={order.customer_name} query={debouncedSearch} /></TableCell>
+                    <TableCell className="text-muted-foreground text-sm"><Highlight text={order.customer_email} query={debouncedSearch} /></TableCell>
+                    <TableCell>{formatCurrency(order.total_amount)}</TableCell>
                     <TableCell><StatusBadge status={order.status as OrderStatus} /></TableCell>
                     <TableCell className="text-muted-foreground text-sm">
                       {new Date(order.created_at).toLocaleDateString()}
