@@ -20,14 +20,15 @@ export function PublicLayout() {
     return (
       <Link
         to={to}
-        className={`flex items-center gap-2 text-sm font-medium px-4 py-2 rounded-md transition-all ${
+        className={`flex items-center gap-2 text-sm font-medium px-3 py-2 rounded-md transition-all ${
           isActive
             ? 'bg-primary text-primary-foreground shadow'
             : 'text-gray-700 dark:text-gray-300 hover:bg-white/30 dark:hover:bg-white/10'
         }`}
+        aria-label={label}
       >
         {icon}
-        {label}
+        <span className="hidden sm:inline">{label}</span>
       </Link>
     );
   };
