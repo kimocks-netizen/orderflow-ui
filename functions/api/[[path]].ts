@@ -1,6 +1,6 @@
 const BACKEND_URL = "http://13.247.70.10:8000";
 
-export const onRequest: PagesFunction = async (context) => {
+export const onRequest = async (context: any) => {
   const url = new URL(context.request.url);
   const backendUrl = new URL(url.pathname + url.search, BACKEND_URL);
 
