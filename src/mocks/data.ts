@@ -45,18 +45,30 @@ export const MOCK_HISTORY: Record<number, StatusHistoryEntry[]> = {
 export function getMockDashboard(): DashboardSummary {
   const byStatus = { pending: 0, paid: 0, shipped: 0, cancelled: 0 };
   let totalRevenue = 0;
+  let revenueCount = 0;
   for (const o of MOCK_ORDERS) {
     byStatus[o.status]++;
-    if (o.status !== "cancelled") totalRevenue += o.total_amount;
+    if (o.status !== "cancelled") { totalRevenue += o.total_amount; revenueCount++; }
   }
   const today = new Date().toDateString();
   const ordersToday = MOCK_ORDERS.filter(
     (o) => new Date(o.created_at).toDateString() === today
   ).length;
+  const dayMap: Record<string, number> = {};
+  for (let i = 6; i >= 0; i--) {
+    const d = new Date(); d.setDate(d.getDate() - i);
+    dayMap[d.toDateString()] = 0;
+  }
+  for (const o of MOCK_ORDERS) {
+    const key = new Date(o.created_at).toDateString();
+    if (key in dayMap) dayMap[key]++;
+  }
   return {
     total_orders: MOCK_ORDERS.length,
     orders_by_status: byStatus,
     total_revenue: totalRevenue,
     orders_today: ordersToday,
+    avg_order_value: revenueCount ? totalRevenue / revenueCount : 0,
+    orders_per_day: Object.entries(dayMap).map(([date, count]) => ({ date, count })),
   };
 }

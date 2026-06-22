@@ -10,6 +10,7 @@ import { OrderDetailPage } from "@/pages/OrderDetailPage";
 import { CreateOrderPage } from "@/pages/CreateOrderPage";
 import { NotFoundPage } from "@/pages/NotFoundPage";
 import { LandingPage } from "@/pages/LandingPage";
+import { ReportsPage } from "@/pages/ReportsPage";
 
 export const router = createBrowserRouter([
   {
@@ -29,6 +30,7 @@ export const router = createBrowserRouter([
           { path: ROUTES.ORDERS, element: <OrdersPage /> },
           { path: "/orders/:id", element: <OrderDetailPage /> },
           { path: ROUTES.CREATE_ORDER, element: <CreateOrderPage /> },
+          { path: ROUTES.REPORTS, element: <ReportsPage /> },
         ],
       },
     ],

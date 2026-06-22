@@ -1,4 +1,4 @@
-import { GitBranch, Mail, LayoutDashboard, ShoppingCart, PlusCircle, Lock } from 'lucide-react';
+import { GitBranch, Mail, LayoutDashboard, ShoppingCart, PlusCircle, Lock, BarChart3 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { ROUTES } from '@/routes/routes';
 import { useAuthStore } from '@/stores/useAuthStore';
@@ -53,6 +53,10 @@ export function Footer() {
                   <li className="flex items-center gap-2">
                     <PlusCircle className="w-4 h-4 text-primary" />
                     <Link to={ROUTES.CREATE_ORDER} className="hover:text-primary transition-all hover:translate-x-2 inline-block">New Order</Link>
+                  </li>
+                  <li className="flex items-center gap-2">
+                    <BarChart3 className="w-4 h-4 text-primary" />
+                    <Link to={ROUTES.REPORTS} className="hover:text-primary transition-all hover:translate-x-2 inline-block">Reports</Link>
                   </li>
                 </>
               )}

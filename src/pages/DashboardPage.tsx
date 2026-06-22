@@ -12,7 +12,7 @@ import type { OrderStatus } from "@/types/order";
 
 const statusConfig: Record<
   OrderStatus,
-  { label: string; icon: React.ElementType; color: string; bg: string; bar: string }
+  { label: string; icon: React.ElementType; color: string; bg: string; bar: string; badge: string }
 > = {
   pending: {
     label: "Pending",
@@ -20,6 +20,7 @@ const statusConfig: Record<
     color: "text-yellow-600 dark:text-yellow-400",
     bg: "bg-yellow-50 dark:bg-yellow-900/20 border-yellow-200 dark:border-yellow-800/40",
     bar: "bg-yellow-400",
+    badge: "bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-400",
   },
   paid: {
     label: "Paid",
@@ -27,6 +28,7 @@ const statusConfig: Record<
     color: "text-blue-600 dark:text-blue-400",
     bg: "bg-blue-50 dark:bg-blue-900/20 border-blue-200 dark:border-blue-800/40",
     bar: "bg-blue-400",
+    badge: "bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-400",
   },
   shipped: {
     label: "Shipped",
@@ -34,6 +36,7 @@ const statusConfig: Record<
     color: "text-green-600 dark:text-green-400",
     bg: "bg-green-50 dark:bg-green-900/20 border-green-200 dark:border-green-800/40",
     bar: "bg-green-400",
+    badge: "bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400",
   },
   cancelled: {
     label: "Cancelled",
@@ -41,6 +44,7 @@ const statusConfig: Record<
     color: "text-red-600 dark:text-red-400",
     bg: "bg-red-50 dark:bg-red-900/20 border-red-200 dark:border-red-800/40",
     bar: "bg-red-400",
+    badge: "bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400",
   },
 };
 

@@ -1,14 +1,14 @@
 import { Link, useLocation, useNavigate } from 'react-router-dom';
-import { LayoutDashboard, ShoppingCart, PlusCircle, LogOut, Sun, Moon, ChevronLeft, ChevronRight } from 'lucide-react';
+import { LayoutDashboard, ShoppingCart, PlusCircle, LogOut, Sun, Moon, ChevronLeft, ChevronRight, BarChart3 } from 'lucide-react';
 import { useAuthStore } from '@/stores/useAuthStore';
 import { useThemeStore } from '@/stores/useThemeStore';
 import { ROUTES } from '@/routes/routes';
-import { Button } from '@/components/ui/button';
 
 const navItems = [
-  { to: ROUTES.DASHBOARD, icon: LayoutDashboard, label: 'Dashboard' },
-  { to: ROUTES.ORDERS,    icon: ShoppingCart,    label: 'Orders' },
-  { to: ROUTES.CREATE_ORDER, icon: PlusCircle,   label: 'New Order' },
+  { to: ROUTES.DASHBOARD,    icon: LayoutDashboard, label: 'Dashboard' },
+  { to: ROUTES.ORDERS,       icon: ShoppingCart,    label: 'Orders' },
+  { to: ROUTES.CREATE_ORDER, icon: PlusCircle,      label: 'New Order' },
+  { to: ROUTES.REPORTS,      icon: BarChart3,       label: 'Reports & Analyses' },
 ];
 
 interface SidebarProps {
@@ -25,7 +25,7 @@ export function Sidebar({ collapsed, onToggle }: SidebarProps) {
   const handleLogout = () => { logout(); navigate(ROUTES.LOGIN); };
 
   return (
-    <aside className={`${collapsed ? 'w-14' : 'w-56'} shrink-0 flex flex-col h-full backdrop-blur-md bg-white/80 dark:bg-slate-900/90 border-r border-gray-200 dark:border-slate-700/50 transition-all duration-300`}>
+    <aside className={`${collapsed ? 'w-14' : 'w-64'} shrink-0 flex flex-col h-full backdrop-blur-md bg-white/80 dark:bg-slate-900/90 border-r border-gray-200 dark:border-slate-700/50 transition-all duration-300`}>
 
       {/* Logo + toggle */}
       <div className={`flex items-center border-b border-gray-200 dark:border-slate-700/50 h-14 ${collapsed ? 'justify-center px-0' : 'justify-between px-4'}`}>
