@@ -11,10 +11,37 @@ import {
 } from "recharts";
 import {
   ShoppingCart, DollarSign, TrendingUp, Clock,
-  ArrowRight, BarChart2, Package, CheckCircle2, XCircle, Eye, CreditCard,
+  ArrowRight, BarChart2, Package, CheckCircle2, XCircle, Eye, CreditCard, User,
 } from "lucide-react";
 import type { OrderStatus } from "@/types/order";
 import { formatCurrency, abbreviateCurrency } from "@/lib/utils";
+
+function NamePopover({ name }: { name: string }) {
+  const [open, setOpen] = useState(false);
+  const LIMIT = 30;
+  const needsTruncation = name.length > LIMIT;
+  const truncated = needsTruncation ? name.slice(0, LIMIT) + "\u2026" : name;
+  return (
+    <div className="relative min-w-0 flex-1 overflow-hidden">
+      <span
+        className={`text-sm font-semibold text-gray-900 dark:text-white${needsTruncation ? " cursor-pointer underline decoration-dotted underline-offset-2" : ""}`}
+        onMouseEnter={() => needsTruncation && setOpen(true)}
+        onMouseLeave={() => setOpen(false)}
+      >
+        {truncated}
+      </span>
+      {open && (
+        <div className="absolute z-50 top-full left-0 mt-2 w-64 max-h-24 overflow-y-auto px-3 py-2 rounded-lg bg-popover border border-border text-popover-foreground text-xs shadow-xl break-all">
+          <div className="flex items-start gap-2">
+            <User className="h-3.5 w-3.5 shrink-0 text-primary mt-0.5" />
+            <span>{name}</span>
+          </div>
+          <div className="absolute bottom-full left-4 border-4 border-transparent border-b-border" />
+        </div>
+      )}
+    </div>
+  );
+}
 
 function CountDisplay({ value }: { value: number }) {
   const [open, setOpen] = useState(false);
@@ -33,16 +60,10 @@ function CountDisplay({ value }: { value: number }) {
         {abbreviated}
       </span>
       {open && (
-        <span className="absolute z-50 bottom-full left-1/2 -translate-x-1/2 mb-2 px-3 py-2 rounded-lg bg-gray-900 dark:bg-slate-700 text-white text-xs font-normal shadow-xl whitespace-nowrap">
+        <span className="absolute z-50 top-full left-1/2 -translate-x-1/2 mt-2 px-3 py-2 rounded-lg bg-popover border border-border text-popover-foreground text-xs font-normal shadow-xl whitespace-nowrap">
           {full}
-          <span className="absolute top-full left-1/2 -translate-x-1/2 border-4 border-transparent border-t-gray-900 dark:border-t-slate-700" />
-        </span>
-      )}
-    </span>
-  );
-}
-
-function AmountDisplay({ amount }: { amount: number }) {
+          <span className="absolute bottom-full left-1/2 -translate-x-1/2 border-4 border-transparent border-b-border" />
+        </span>({ amount }: { amount: number }) {
   const [open, setOpen] = useState(false);
   const abbreviated = abbreviateCurrency(amount);
   const full = formatCurrency(amount);
@@ -57,9 +78,9 @@ function AmountDisplay({ amount }: { amount: number }) {
         {abbreviated}
       </span>
       {open && (
-        <span className="absolute z-50 bottom-full left-1/2 -translate-x-1/2 mb-2 px-3 py-2 rounded-lg bg-gray-900 dark:bg-slate-700 text-white text-xs font-normal shadow-xl whitespace-nowrap">
+        <span className="absolute z-50 top-full left-1/2 -translate-x-1/2 mt-2 px-3 py-2 rounded-lg bg-popover border border-border text-popover-foreground text-xs font-normal shadow-xl whitespace-nowrap">
           {full}
-          <span className="absolute top-full left-1/2 -translate-x-1/2 border-4 border-transparent border-t-gray-900 dark:border-t-slate-700" />
+          <span className="absolute bottom-full left-1/2 -translate-x-1/2 border-4 border-transparent border-b-border" />
         </span>
       )}
     </span>
@@ -375,9 +396,9 @@ export function DashboardPage() {
                         <Icon className={`h-4 w-4 ${statusCfg.color}`} />
                       </div>
                       <div className="flex-1 min-w-0">
-                        <div className="flex items-center justify-between">
-                          <p className="text-sm font-semibold text-gray-900 dark:text-white truncate">{order.customer_name}</p>
-                          <span className="text-[10px] text-muted-foreground shrink-0 ml-2">{timeAgo}</span>
+                        <div className="flex items-center justify-between gap-2">
+                          <NamePopover name={order.customer_name} />
+                          <span className="text-[10px] text-muted-foreground shrink-0">{timeAgo}</span>
                         </div>
                         <div className="flex items-center gap-2 mt-0.5">
                           <span className="text-xs text-muted-foreground">#{order.id}</span>

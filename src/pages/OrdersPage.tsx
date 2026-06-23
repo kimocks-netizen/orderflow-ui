@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useSearchParams, Link, useNavigate } from "react-router-dom";
-import { Plus, Search, Eye, X, Mail } from "lucide-react";
+import { Plus, Search, Eye, X, Mail, Calendar } from "lucide-react";
 import { useOrdersQuery } from "@/features/orders/queries";
 import { PageHeader } from "@/components/shared/PageHeader";
 import { StatusBadge } from "@/components/shared/StatusBadge";
@@ -31,11 +31,32 @@ function AmountCell({ amount }: { amount: number }) {
         {abbreviated}
       </span>
       {open && (
-        <div className="absolute z-50 bottom-full left-1/2 -translate-x-1/2 mb-2 px-3 py-2 rounded-lg bg-gray-900 dark:bg-slate-700 text-white text-xs shadow-xl whitespace-nowrap">
+        <div className="absolute z-50 top-full left-1/2 -translate-x-1/2 mt-2 px-3 py-2 rounded-lg bg-popover border border-border text-popover-foreground text-xs shadow-xl whitespace-nowrap">
           {full}
-          <div className="absolute top-full left-1/2 -translate-x-1/2 border-4 border-transparent border-t-gray-900 dark:border-t-slate-700" />
+          <div className="absolute bottom-full left-1/2 -translate-x-1/2 border-4 border-transparent border-b-border" />
         </div>
       )}
+    </div>
+  );
+}
+
+function DatePicker({ value, onChange, min, placeholder }: { value: string; onChange: (v: string) => void; min?: string; placeholder: string }) {
+  const display = value
+    ? value.replace(/-/g, '/')
+    : placeholder;
+  return (
+    <div className="relative flex items-center h-9 rounded-md border border-input bg-background text-sm w-36 overflow-hidden">
+      <Calendar className="absolute left-2.5 h-3.5 w-3.5 text-muted-foreground pointer-events-none z-10 shrink-0" />
+      <span className={`absolute left-8 right-1 pointer-events-none z-10 text-sm truncate ${value ? 'text-foreground' : 'text-muted-foreground'}`}>
+        {display}
+      </span>
+      <input
+        type="date"
+        value={value}
+        min={min}
+        onChange={(e) => onChange(e.target.value)}
+        className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+      />
     </div>
   );
 }
@@ -63,12 +84,12 @@ function EmailCell({ email, query }: { email: string; query: string }) {
         <Highlight text={truncated} query={query} />
       </span>
       {open && (
-        <div className="absolute z-50 bottom-full left-0 mb-2 w-64 max-h-24 overflow-y-auto px-3 py-2 rounded-lg bg-gray-900 dark:bg-slate-700 text-white text-xs shadow-xl break-all">
+        <div className="absolute z-50 top-full left-0 mt-2 w-64 max-h-24 overflow-y-auto px-3 py-2 rounded-lg bg-popover border border-border text-popover-foreground text-xs shadow-xl break-all">
           <div className="flex items-start gap-2">
             <Mail className="h-3.5 w-3.5 shrink-0 text-primary mt-0.5" />
             <span>{email}</span>
           </div>
-          <div className="absolute top-full left-4 border-4 border-transparent border-t-gray-900 dark:border-t-slate-700" />
+          <div className="absolute bottom-full left-4 border-4 border-transparent border-b-border" />
         </div>
       )}
     </div>
@@ -176,8 +197,8 @@ export function OrdersPage() {
             ))}
           </SelectContent>
         </Select>
-        <Input type="date" value={dateFrom} onChange={(e) => setDateFrom(e.target.value)} className="w-40" />
-        <Input type="date" value={dateTo} min={dateFrom} onChange={(e) => setDateTo(e.target.value)} className="w-40" />
+        <DatePicker value={dateFrom} onChange={setDateFrom} placeholder="From date" />
+        <DatePicker value={dateTo} onChange={setDateTo} min={dateFrom} placeholder="To date" />
         {(dateFrom || dateTo) && (
           <Button variant="ghost" size="sm" onClick={() => { setDateFrom(""); setDateTo(""); }} className="gap-1.5 text-muted-foreground">
             <X className="h-3.5 w-3.5" /> Clear dates

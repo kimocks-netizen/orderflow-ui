@@ -15,9 +15,10 @@ const navItems = [
 interface SidebarProps {
   collapsed: boolean;
   onToggle: () => void;
+  onClose?: () => void;
 }
 
-export function Sidebar({ collapsed, onToggle }: SidebarProps) {
+export function Sidebar({ collapsed, onToggle, onClose }: SidebarProps) {
   const location = useLocation();
   const navigate = useNavigate();
   const { logout, user } = useAuthStore();
@@ -68,7 +69,7 @@ export function Sidebar({ collapsed, onToggle }: SidebarProps) {
           const isActive = location.pathname === to;
           return (
             <div key={to} className="relative group">
-              <Link to={to}>
+              <Link to={to} onClick={onClose}>
                 <div className={`flex items-center rounded-lg text-sm font-medium transition-all duration-150 ${
                   collapsed ? 'justify-center p-2.5' : 'gap-3 px-3 py-2.5'
                 } ${

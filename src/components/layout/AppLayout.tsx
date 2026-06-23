@@ -42,7 +42,7 @@ export function AppLayout() {
               <>
                 <div className="fixed inset-0 bg-black/40 z-40 md:hidden" onClick={() => setSidebarOpen(false)} />
                 <div className="fixed top-0 left-0 bottom-0 z-50 md:hidden flex">
-                  <Sidebar collapsed={false} onToggle={() => {}} />
+                  <Sidebar collapsed={false} onToggle={() => {}} onClose={() => setSidebarOpen(false)} />
                   <button
                     onClick={() => setSidebarOpen(false)}
                     className="absolute top-3 right-3 p-1.5 rounded-full bg-gray-200 dark:bg-slate-700 text-gray-600 dark:text-gray-300"

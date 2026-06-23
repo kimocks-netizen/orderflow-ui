@@ -15,25 +15,25 @@ export function Navbar({ onMenuClick }: NavbarProps) {
 
   return (
     <nav className="md:hidden backdrop-blur-md bg-white/80 dark:bg-slate-900/30 border-b border-gray-300 dark:border-slate-700/50 shadow-lg sticky top-0 z-50">
-      <div className="flex items-center justify-between px-4 py-2">
+      <div className="flex items-center justify-between px-3 py-1.5">
         <Link to={isAuthenticated ? ROUTES.DASHBOARD : ROUTES.LOGIN}>
-          <img src="/logo.png" alt="OrderFlow" className="h-11 object-contain" />
+          <img src="/logo.png" alt="OrderFlow" className="h-8 object-contain" />
         </Link>
 
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-1">
           <Button variant="ghost" size="icon" onClick={toggleTheme}
-            className="rounded-full bg-white/20 dark:bg-white/10 text-gray-900 dark:text-white"
+            className="h-8 w-8 rounded-full bg-white/20 dark:bg-white/10 text-gray-900 dark:text-white"
             aria-label="Toggle theme"
           >
-            {isDark ? <Sun className="h-5 w-5" /> : <Moon className="h-5 w-5" />}
+            {isDark ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
           </Button>
 
           {onMenuClick && (
             <Button variant="ghost" size="icon" onClick={onMenuClick}
-              className="rounded-full bg-white/20 dark:bg-white/10 text-gray-900 dark:text-white"
+              className="h-8 w-8 rounded-full bg-white/20 dark:bg-white/10 text-gray-900 dark:text-white"
               aria-label="Open menu"
             >
-              <Menu className="h-5 w-5" />
+              <Menu className="h-4 w-4" />
             </Button>
           )}
         </div>

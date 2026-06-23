@@ -279,12 +279,12 @@ function NamePopover({ name }: { name: string }) {
         {truncated}
       </span>
       {open && (
-        <div className="absolute z-50 bottom-full left-0 mb-2 w-64 max-h-24 overflow-y-auto px-3 py-2 rounded-lg bg-gray-900 dark:bg-slate-700 text-white text-xs shadow-xl break-all">
+        <div className="absolute z-50 top-full left-0 mt-2 w-64 max-h-24 overflow-y-auto px-3 py-2 rounded-lg bg-popover border border-border text-popover-foreground text-xs shadow-xl break-all">
           <div className="flex items-start gap-2">
             <User className="h-3.5 w-3.5 shrink-0 text-primary mt-0.5" />
             <span>{name}</span>
           </div>
-          <div className="absolute top-full left-4 border-4 border-transparent border-t-gray-900 dark:border-t-slate-700" />
+          <div className="absolute bottom-full left-4 border-4 border-transparent border-b-border" />
         </div>
       )}
     </div>
@@ -305,12 +305,12 @@ function EmailPopover({ email }: { email: string }) {
         {truncated}
       </span>
       {open && (
-        <div className="absolute z-50 bottom-full left-0 mb-2 w-64 max-h-24 overflow-y-auto px-3 py-2 rounded-lg bg-gray-900 dark:bg-slate-700 text-white text-xs shadow-xl break-all">
+        <div className="absolute z-50 top-full left-0 mt-2 w-64 max-h-24 overflow-y-auto px-3 py-2 rounded-lg bg-popover border border-border text-popover-foreground text-xs shadow-xl break-all">
           <div className="flex items-start gap-2">
             <Mail className="h-3.5 w-3.5 shrink-0 text-primary mt-0.5" />
             <span>{email}</span>
           </div>
-          <div className="absolute top-full left-4 border-4 border-transparent border-t-gray-900 dark:border-t-slate-700" />
+          <div className="absolute bottom-full left-4 border-4 border-transparent border-b-border" />
         </div>
       )}
     </div>
