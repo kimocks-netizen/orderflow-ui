@@ -10,7 +10,7 @@ import { PageLoader } from "@/components/shared/LoadingSpinner";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { formatCurrency } from "@/lib/utils";
+import { formatCurrency, abbreviateCurrency } from "@/lib/utils";
 import {
   TrendingUp, TrendingDown, PackageCheck, XCircle,
   Clock, DollarSign, Users, AlertTriangle, CalendarDays,
@@ -292,12 +292,14 @@ export function ReportsPage() {
                         <span className="h-6 w-6 rounded-full bg-primary/10 text-primary text-[10px] font-bold flex items-center justify-center shrink-0">
                           {i + 1}
                         </span>
-                        {c.name}
+                        {c.name.length > 15 ? (
+                          <span title={c.name}>{c.name.slice(0, 15)}…</span>
+                        ) : c.name}
                       </td>
-                      <td className="px-5 py-3 text-muted-foreground">{c.email}</td>
+                      <td className="px-5 py-3"><EmailCell email={c.email} /></td>
                       <td className="px-5 py-3 text-right font-semibold">{c.orders}</td>
-                      <td className="px-5 py-3 text-right font-semibold text-gray-900 dark:text-white">
-                        {formatCurrency(c.total)}
+                      <td className="px-5 py-3 text-right">
+                        <AmountCell amount={c.total} />
                       </td>
                     </tr>
                   ))}
@@ -312,6 +314,62 @@ export function ReportsPage() {
 }
 
 type InsightColor = "success" | "error" | "warning" | "primary";
+
+function truncateEmail(email: string): string {
+  if (email.length <= 25) return email;
+  const atIndex = email.lastIndexOf("@");
+  const domain = atIndex !== -1 ? email.slice(atIndex) : "";
+  const local = atIndex !== -1 ? email.slice(0, atIndex) : email;
+  const budget = 25 - domain.length - 1;
+  return budget > 0 ? local.slice(0, budget) + "\u2026" + domain : email.slice(0, 24) + "\u2026";
+}
+
+function EmailCell({ email }: { email: string }) {
+  const [open, setOpen] = useState(false);
+  const truncated = truncateEmail(email);
+  const needsTruncation = email.length > 25;
+  return (
+    <div className="relative inline-block">
+      <span
+        className={`text-muted-foreground${needsTruncation ? " cursor-pointer underline decoration-dotted underline-offset-2" : ""}`}
+        onMouseEnter={() => needsTruncation && setOpen(true)}
+        onMouseLeave={() => setOpen(false)}
+      >
+        {truncated}
+      </span>
+      {open && (
+        <div className="absolute z-50 bottom-full left-0 mb-2 flex items-center gap-2 px-3 py-2 rounded-lg bg-gray-900 dark:bg-slate-700 text-white text-xs shadow-xl whitespace-nowrap">
+          {email}
+          <div className="absolute top-full left-4 border-4 border-transparent border-t-gray-900 dark:border-t-slate-700" />
+        </div>
+      )}
+    </div>
+  );
+}
+
+function AmountCell({ amount }: { amount: number }) {
+  const [open, setOpen] = useState(false);
+  const abbreviated = abbreviateCurrency(amount);
+  const full = formatCurrency(amount);
+  const needsAbbrev = abbreviated !== full;
+  return (
+    <span className="relative inline-block">
+      <span
+        className={`tabular-nums font-semibold text-gray-900 dark:text-white${needsAbbrev ? " cursor-pointer underline decoration-dotted underline-offset-2" : ""}`}
+        onMouseEnter={() => needsAbbrev && setOpen(true)}
+        onMouseLeave={() => setOpen(false)}
+      >
+        {abbreviated}
+      </span>
+      {open && (
+        <span className="absolute z-50 bottom-full left-1/2 -translate-x-1/2 mb-2 px-3 py-2 rounded-lg bg-gray-900 dark:bg-slate-700 text-white text-xs shadow-xl whitespace-nowrap">
+          {full}
+          <span className="absolute top-full left-1/2 -translate-x-1/2 border-4 border-transparent border-t-gray-900 dark:border-t-slate-700" />
+        </span>
+      )}
+    </span>
+  );
+}
 
 function InsightCard({
   icon: Icon, color, title, body,

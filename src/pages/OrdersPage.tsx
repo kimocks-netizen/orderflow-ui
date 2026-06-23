@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useSearchParams, Link, useNavigate } from "react-router-dom";
-import { Plus, Search, Eye, X } from "lucide-react";
+import { Plus, Search, Eye, X, Mail } from "lucide-react";
 import { useOrdersQuery } from "@/features/orders/queries";
 import { PageHeader } from "@/components/shared/PageHeader";
 import { StatusBadge } from "@/components/shared/StatusBadge";
@@ -11,10 +11,67 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Card } from "@/components/ui/card";
 import { useDebounce } from "@/hooks/useDebounce";
-import { formatCurrency } from "@/lib/utils";
+import { formatCurrency, abbreviateCurrency } from "@/lib/utils";
 import { usePagination } from "@/hooks/usePagination";
 import { ROUTES } from "@/routes/routes";
 import type { Order, OrderStatus } from "@/types/order";
+
+function AmountCell({ amount }: { amount: number }) {
+  const [open, setOpen] = useState(false);
+  const abbreviated = abbreviateCurrency(amount);
+  const full = formatCurrency(amount);
+  const needsAbbrev = abbreviated !== full;
+  return (
+    <div className="relative inline-block">
+      <span
+        className={`tabular-nums font-medium${needsAbbrev ? " cursor-pointer underline decoration-dotted underline-offset-2" : ""}`}
+        onMouseEnter={() => needsAbbrev && setOpen(true)}
+        onMouseLeave={() => setOpen(false)}
+      >
+        {abbreviated}
+      </span>
+      {open && (
+        <div className="absolute z-50 bottom-full left-1/2 -translate-x-1/2 mb-2 px-3 py-2 rounded-lg bg-gray-900 dark:bg-slate-700 text-white text-xs shadow-xl whitespace-nowrap">
+          {full}
+          <div className="absolute top-full left-1/2 -translate-x-1/2 border-4 border-transparent border-t-gray-900 dark:border-t-slate-700" />
+        </div>
+      )}
+    </div>
+  );
+}
+
+function truncateEmail(email: string): string {
+  if (email.length <= 25) return email;
+  const atIndex = email.lastIndexOf("@");
+  const domain = atIndex !== -1 ? email.slice(atIndex) : "";
+  const local = atIndex !== -1 ? email.slice(0, atIndex) : email;
+  const budget = 25 - domain.length - 1; // 1 for '…'
+  return budget > 0 ? local.slice(0, budget) + "\u2026" + domain : email.slice(0, 24) + "\u2026";
+}
+
+function EmailCell({ email, query }: { email: string; query: string }) {
+  const [open, setOpen] = useState(false);
+  const truncated = truncateEmail(email);
+  const needsTruncation = email.length > 25;
+  return (
+    <div className="relative inline-block">
+      <span
+        className={`text-sm text-muted-foreground${needsTruncation ? " cursor-pointer underline decoration-dotted underline-offset-2" : ""}`}
+        onMouseEnter={() => needsTruncation && setOpen(true)}
+        onMouseLeave={() => setOpen(false)}
+      >
+        <Highlight text={truncated} query={query} />
+      </span>
+      {open && (
+        <div className="absolute z-50 bottom-full left-0 mb-2 flex items-center gap-2 px-3 py-2 rounded-lg bg-gray-900 dark:bg-slate-700 text-white text-xs shadow-xl whitespace-nowrap">
+          <Mail className="h-3.5 w-3.5 shrink-0 text-primary" />
+          {email}
+          <div className="absolute top-full left-4 border-4 border-transparent border-t-gray-900 dark:border-t-slate-700" />
+        </div>
+      )}
+    </div>
+  );
+}
 
 function Highlight({ text, query }: { text: string; query: string }) {
   if (!query.trim()) return <>{text}</>;
@@ -158,9 +215,15 @@ export function OrdersPage() {
                 {data.items.map((order: Order) => (
                   <TableRow key={order.id} className="cursor-pointer hover:bg-muted/80 dark:hover:bg-muted/50 hover:scale-[1.01] transition-all duration-150" onClick={() => navigate(ROUTES.ORDER_DETAIL(order.id))}>
                     <TableCell className="font-mono text-xs text-muted-foreground">#{order.id}</TableCell>
-                    <TableCell className="font-medium"><Highlight text={order.customer_name} query={debouncedSearch} /></TableCell>
-                    <TableCell className="text-muted-foreground text-sm"><Highlight text={order.customer_email} query={debouncedSearch} /></TableCell>
-                    <TableCell>{formatCurrency(order.total_amount)}</TableCell>
+                    <TableCell className="font-medium max-w-[9rem]">
+                      <span title={order.customer_name.length > 14 ? order.customer_name : undefined} className="block truncate">
+                        <Highlight text={order.customer_name.length > 14 ? order.customer_name.slice(0, 14) + '…' : order.customer_name} query={debouncedSearch} />
+                      </span>
+                    </TableCell>
+                    <TableCell className="text-muted-foreground text-sm">
+                      <EmailCell email={order.customer_email} query={debouncedSearch} />
+                    </TableCell>
+                    <TableCell><AmountCell amount={order.total_amount} /></TableCell>
                     <TableCell><StatusBadge status={order.status as OrderStatus} /></TableCell>
                     <TableCell className="text-muted-foreground text-sm">
                       {new Date(order.created_at).toLocaleDateString()}

@@ -1,6 +1,8 @@
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useNavigate } from "react-router-dom";
+import { useState } from "react";
+import { formatCurrency } from "@/lib/utils";
 import { toast } from "sonner";
 import { useCreateOrder } from "@/features/orders/mutations";
 import { createOrderSchema, type CreateOrderFormValues } from "@/features/orders/schemas";
@@ -25,6 +27,10 @@ export function CreateOrderPage() {
     resolver: zodResolver(createOrderSchema),
     defaultValues: { customer_name: "", customer_email: "", total_amount: 0 },
   });
+
+  const [nameLen, setNameLen] = useState(0);
+  const [emailLen, setEmailLen] = useState(0);
+  const [amountVal, setAmountVal] = useState(0);
 
   const onSubmit = (values: CreateOrderFormValues) => {
     mutate(values, {
@@ -62,16 +68,37 @@ export function CreateOrderPage() {
             <CardContent className="pt-8 pb-8 px-10">
               <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col gap-7">
                 <div className="flex flex-col gap-1.5">
-                  <Label htmlFor="customer_name">Customer Name</Label>
-                  <Input id="customer_name" placeholder="Jane Smith" {...register("customer_name")} />
+                  <div className="flex items-center justify-between">
+                    <Label htmlFor="customer_name">Customer Name</Label>
+                    <span className={`text-xs tabular-nums ${nameLen >= 15 ? "text-destructive font-semibold" : "text-muted-foreground"}`}>
+                      {15 - nameLen} left
+                    </span>
+                  </div>
+                  <Input
+                    id="customer_name"
+                    placeholder="Jane Smith"
+                    maxLength={15}
+                    {...register("customer_name", { onChange: (e) => setNameLen(e.target.value.length) })}
+                  />
                   {errors.customer_name && (
                     <p className="text-xs text-destructive">{errors.customer_name.message}</p>
                   )}
                 </div>
 
                 <div className="flex flex-col gap-1.5">
-                  <Label htmlFor="customer_email">Customer Email</Label>
-                  <Input id="customer_email" type="email" placeholder="jane@example.com" {...register("customer_email")} />
+                  <div className="flex items-center justify-between">
+                    <Label htmlFor="customer_email">Customer Email</Label>
+                    <span className={`text-xs tabular-nums ${emailLen >= 254 ? "text-destructive font-semibold" : "text-muted-foreground"}`}>
+                      {254 - emailLen} left
+                    </span>
+                  </div>
+                  <Input
+                    id="customer_email"
+                    type="email"
+                    placeholder="jane@example.com"
+                    maxLength={254}
+                    {...register("customer_email", { onChange: (e) => setEmailLen(e.target.value.length) })}
+                  />
                   {errors.customer_email && (
                     <p className="text-xs text-destructive">{errors.customer_email.message}</p>
                   )}
@@ -85,8 +112,11 @@ export function CreateOrderPage() {
                     min="0"
                     step="0.01"
                     placeholder="0.00"
-                    {...register("total_amount")}
+                    {...register("total_amount", { onChange: (e) => setAmountVal(parseFloat(e.target.value) || 0) })}
                   />
+                  {amountVal > 0 && (
+                    <p className="text-xs text-muted-foreground tabular-nums">{formatCurrency(amountVal)}</p>
+                  )}
                   {errors.total_amount && (
                     <p className="text-xs text-destructive">{errors.total_amount.message}</p>
                   )}

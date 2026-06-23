@@ -3,6 +3,7 @@ import { useRecentOrdersStore } from "@/stores/useRecentOrdersStore";
 import { PageLoader } from "@/components/shared/LoadingSpinner";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Link } from "react-router-dom";
+import { useState } from "react";
 import { ROUTES } from "@/routes/routes";
 import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid,
@@ -13,7 +14,57 @@ import {
   ArrowRight, BarChart2, Package, CheckCircle2, XCircle, Eye, CreditCard,
 } from "lucide-react";
 import type { OrderStatus } from "@/types/order";
-import { formatCurrency } from "@/lib/utils";
+import { formatCurrency, abbreviateCurrency } from "@/lib/utils";
+
+function CountDisplay({ value }: { value: number }) {
+  const [open, setOpen] = useState(false);
+  const abbreviated = value >= 1_000_000 ? `${(value / 1_000_000).toFixed(1).replace(/\.0$/, "")}M`
+    : value >= 1_000 ? `${(value / 1_000).toFixed(1).replace(/\.0$/, "")}K`
+    : value.toLocaleString();
+  const full = value.toLocaleString();
+  const needsAbbrev = abbreviated !== full;
+  return (
+    <span className="relative inline-block">
+      <span
+        className={needsAbbrev ? "cursor-pointer underline decoration-dotted underline-offset-2" : ""}
+        onMouseEnter={() => needsAbbrev && setOpen(true)}
+        onMouseLeave={() => setOpen(false)}
+      >
+        {abbreviated}
+      </span>
+      {open && (
+        <span className="absolute z-50 bottom-full left-1/2 -translate-x-1/2 mb-2 px-3 py-2 rounded-lg bg-gray-900 dark:bg-slate-700 text-white text-xs font-normal shadow-xl whitespace-nowrap">
+          {full}
+          <span className="absolute top-full left-1/2 -translate-x-1/2 border-4 border-transparent border-t-gray-900 dark:border-t-slate-700" />
+        </span>
+      )}
+    </span>
+  );
+}
+
+function AmountDisplay({ amount }: { amount: number }) {
+  const [open, setOpen] = useState(false);
+  const abbreviated = abbreviateCurrency(amount);
+  const full = formatCurrency(amount);
+  const needsAbbrev = abbreviated !== full;
+  return (
+    <span className="relative inline-block">
+      <span
+        className={needsAbbrev ? "cursor-pointer underline decoration-dotted underline-offset-2" : ""}
+        onMouseEnter={() => needsAbbrev && setOpen(true)}
+        onMouseLeave={() => setOpen(false)}
+      >
+        {abbreviated}
+      </span>
+      {open && (
+        <span className="absolute z-50 bottom-full left-1/2 -translate-x-1/2 mb-2 px-3 py-2 rounded-lg bg-gray-900 dark:bg-slate-700 text-white text-xs font-normal shadow-xl whitespace-nowrap">
+          {full}
+          <span className="absolute top-full left-1/2 -translate-x-1/2 border-4 border-transparent border-t-gray-900 dark:border-t-slate-700" />
+        </span>
+      )}
+    </span>
+  );
+}
 
 const statusConfig: Record<
   OrderStatus,
@@ -76,7 +127,8 @@ export function DashboardPage() {
   const summaryCards = [
     {
       title: "Total Orders",
-      value: data.total_orders.toLocaleString(),
+      raw: data.total_orders,
+      type: "count" as const,
       icon: ShoppingCart,
       description: "All time",
       accent: "text-blue-500",
@@ -84,7 +136,8 @@ export function DashboardPage() {
     },
     {
       title: "Total Revenue",
-      value: formatCurrency(data.total_revenue),
+      raw: data.total_revenue,
+      type: "amount" as const,
       icon: DollarSign,
       description: "Excl. cancelled",
       accent: "text-emerald-500",
@@ -92,7 +145,8 @@ export function DashboardPage() {
     },
     {
       title: "Avg Order Value",
-      value: formatCurrency(data.avg_order_value),
+      raw: data.avg_order_value,
+      type: "amount" as const,
       icon: BarChart2,
       description: "Excl. cancelled",
       accent: "text-purple-500",
@@ -100,7 +154,8 @@ export function DashboardPage() {
     },
     {
       title: "Orders Today",
-      value: data.orders_today.toLocaleString(),
+      raw: data.orders_today,
+      type: "count" as const,
       icon: TrendingUp,
       description: "Last 24 hours",
       accent: "text-orange-500",
@@ -126,7 +181,11 @@ export function DashboardPage() {
               <div className="flex items-start justify-between">
                 <div>
                   <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">{card.title}</p>
-                  <p className="text-2xl font-bold mt-1 text-gray-900 dark:text-white">{card.value}</p>
+                  <p className="text-2xl font-bold mt-1 text-gray-900 dark:text-white">
+                    {card.type === "amount"
+                      ? <AmountDisplay amount={card.raw} />
+                      : <CountDisplay value={card.raw} />}
+                  </p>
                   <p className="text-xs text-muted-foreground mt-1">{card.description}</p>
                 </div>
                 <div className={`p-2.5 rounded-xl ${card.glow}`}>
@@ -323,7 +382,7 @@ export function DashboardPage() {
                         <div className="flex items-center gap-2 mt-0.5">
                           <span className="text-xs text-muted-foreground">#{order.id}</span>
                           <span className="text-muted-foreground">·</span>
-                          <span className="text-xs text-muted-foreground">{formatCurrency(order.total_amount)}</span>
+                          <span className="text-xs text-muted-foreground">{abbreviateCurrency(order.total_amount)}</span>
                           <span className="text-muted-foreground">·</span>
                           <span className={`text-[10px] font-semibold capitalize px-1.5 py-0.5 rounded-full ${statusCfg.badge}`}>{order.status}</span>
                         </div>
