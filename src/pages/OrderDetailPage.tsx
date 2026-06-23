@@ -104,7 +104,7 @@ export function OrderDetailPage() {
                   <div className="grid grid-cols-2 gap-3">
                     <InfoRow icon={User} label="Customer" value={order.customer_name} isName />
                     <InfoRow icon={Mail} label="Email" value={order.customer_email} isEmail />
-                    <InfoRow icon={DollarSign} label="Total" value={abbreviateCurrency(order.total_amount)} isAmount />
+                    <InfoRow icon={DollarSign} label="Total" value={formatCurrency(order.total_amount)} isAmount amount={order.total_amount} />
                     <InfoRow icon={CalendarDays} label="Placed" value={new Date(order.created_at).toLocaleDateString()} />
                   </div>
                 </div>
@@ -243,7 +243,7 @@ export function OrderDetailPage() {
               <Row label="Customer" value={order.customer_name} isName />
               <Row label="Email" value={order.customer_email} isEmail />
               <div className="border-t border-border my-1" />
-              <Row label="Total Amount" value={abbreviateCurrency(order.total_amount)} bold isAmount />
+              <Row label="Total Amount" value={formatCurrency(order.total_amount)} bold isAmount amount={order.total_amount} />
               <div className="border-t border-border my-1" />
               <Row label="Created" value={new Date(order.created_at).toLocaleString()} />
               <Row label="Last Updated" value={new Date(order.updated_at).toLocaleString()} />
@@ -317,9 +317,8 @@ function EmailPopover({ email }: { email: string }) {
   );
 }
 
-function AmountPopover({ value, bold }: { value: string; bold?: boolean }) {
+function AmountPopover({ amount, bold }: { amount: number; bold?: boolean }) {
   const [open, setOpen] = useState(false);
-  const amount = parseFloat(value.replace(/[^0-9.]/g, ""));
   const abbreviated = abbreviateCurrency(amount);
   const full = formatCurrency(amount);
   const needsAbbrev = abbreviated !== full;
@@ -342,7 +341,7 @@ function AmountPopover({ value, bold }: { value: string; bold?: boolean }) {
   );
 }
 
-function InfoRow({ icon: Icon, label, value, isEmail, isName, isAmount }: { icon: React.ElementType; label: string; value?: string; amount?: number; isEmail?: boolean; isName?: boolean; isAmount?: boolean }) {
+function InfoRow({ icon: Icon, label, value, amount, isEmail, isName, isAmount }: { icon: React.ElementType; label: string; value?: string; amount?: number; isEmail?: boolean; isName?: boolean; isAmount?: boolean }) {
   const displayName = !isEmail && !isName && !isAmount && (value ?? "").length > 15 ? (value ?? "").slice(0, 15) + "\u2026" : (value ?? "");
   return (
     <div className="flex items-start gap-2">
@@ -356,7 +355,7 @@ function InfoRow({ icon: Icon, label, value, isEmail, isName, isAmount }: { icon
           : isName
           ? <NamePopover name={value ?? ""} />
           : isAmount
-          ? <AmountPopover value={value ?? ""} />
+          ? <AmountPopover amount={amount ?? 0} />
           : <p className="text-sm font-medium text-gray-900 dark:text-white truncate" title={(value ?? "").length > 15 ? (value ?? "") : undefined}>{displayName}</p>
         }
       </div>
@@ -364,7 +363,7 @@ function InfoRow({ icon: Icon, label, value, isEmail, isName, isAmount }: { icon
   );
 }
 
-function Row({ label, value, bold, isEmail, isName, isAmount }: { label: string; value: string; bold?: boolean; isEmail?: boolean; isName?: boolean; isAmount?: boolean }) {
+function Row({ label, value, amount, bold, isEmail, isName, isAmount }: { label: string; value: string; amount?: number; bold?: boolean; isEmail?: boolean; isName?: boolean; isAmount?: boolean }) {
   return (
     <div className="flex justify-between text-sm gap-2">
       <span className="text-muted-foreground shrink-0">{label}</span>
@@ -373,7 +372,7 @@ function Row({ label, value, bold, isEmail, isName, isAmount }: { label: string;
         : isName
         ? <NamePopover name={value} />
         : isAmount
-        ? <AmountPopover value={value} bold={bold} />
+        ? <AmountPopover amount={amount ?? 0} bold={bold} />
         : <span className={`${bold ? "font-bold text-gray-900 dark:text-white" : "font-medium"} text-right`}>{value}</span>
       }
     </div>
