@@ -338,8 +338,8 @@ function EmailCell({ email }: { email: string }) {
         {truncated}
       </span>
       {open && (
-        <div className="absolute z-50 bottom-full left-0 mb-2 flex items-center gap-2 px-3 py-2 rounded-lg bg-gray-900 dark:bg-slate-700 text-white text-xs shadow-xl whitespace-nowrap">
-          {email}
+        <div className="absolute z-50 bottom-full left-0 mb-2 w-64 max-h-24 overflow-y-auto px-3 py-2 rounded-lg bg-gray-900 dark:bg-slate-700 text-white text-xs shadow-xl break-all">
+          <span>{email}</span>
           <div className="absolute top-full left-4 border-4 border-transparent border-t-gray-900 dark:border-t-slate-700" />
         </div>
       )}

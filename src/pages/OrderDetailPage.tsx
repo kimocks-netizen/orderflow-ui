@@ -102,7 +102,7 @@ export function OrderDetailPage() {
                   </div>
 
                   <div className="grid grid-cols-2 gap-3">
-                    <InfoRow icon={User} label="Customer" value={order.customer_name} />
+                    <InfoRow icon={User} label="Customer" value={order.customer_name} isName />
                     <InfoRow icon={Mail} label="Email" value={order.customer_email} isEmail />
                     <InfoRow icon={DollarSign} label="Total" value={formatCurrency(order.total_amount)} />
                     <InfoRow icon={CalendarDays} label="Placed" value={new Date(order.created_at).toLocaleDateString()} />
@@ -240,7 +240,7 @@ export function OrderDetailPage() {
             </CardHeader>
             <CardContent className="flex flex-col gap-3">
               <Row label="Order ID" value={`#${order.id}`} />
-              <Row label="Customer" value={order.customer_name} />
+              <Row label="Customer" value={order.customer_name} isName />
               <Row label="Email" value={order.customer_email} isEmail />
               <div className="border-t border-border my-1" />
               <Row label="Total Amount" value={formatCurrency(order.total_amount)} bold />
@@ -264,23 +264,26 @@ function truncateEmail(email: string): string {
   return budget > 0 ? local.slice(0, budget) + "\u2026" + domain : email.slice(0, 24) + "\u2026";
 }
 
-function EmailPopover({ email }: { email: string }) {
+function NamePopover({ name }: { name: string }) {
   const [open, setOpen] = useState(false);
-  const truncated = truncateEmail(email);
-  const needsTruncation = email.length > 25;
+  const LIMIT = 30;
+  const needsTruncation = name.length > LIMIT;
+  const truncated = needsTruncation ? name.slice(0, LIMIT) + "\u2026" : name;
   return (
-    <div className="relative inline-block min-w-0">
+    <div className="relative min-w-0">
       <span
-        className={`text-sm font-medium text-gray-900 dark:text-white break-all${needsTruncation ? " cursor-pointer underline decoration-dotted underline-offset-2" : ""}`}
+        className={`text-sm font-medium text-gray-900 dark:text-white${needsTruncation ? " cursor-pointer underline decoration-dotted underline-offset-2" : ""}`}
         onMouseEnter={() => needsTruncation && setOpen(true)}
         onMouseLeave={() => setOpen(false)}
       >
         {truncated}
       </span>
       {open && (
-        <div className="absolute z-50 bottom-full left-0 mb-2 flex items-center gap-2 px-3 py-2 rounded-lg bg-gray-900 dark:bg-slate-700 text-white text-xs shadow-xl whitespace-nowrap">
-          <Mail className="h-3.5 w-3.5 shrink-0 text-primary" />
-          {email}
+        <div className="absolute z-50 bottom-full left-0 mb-2 w-64 max-h-24 overflow-y-auto px-3 py-2 rounded-lg bg-gray-900 dark:bg-slate-700 text-white text-xs shadow-xl break-all">
+          <div className="flex items-start gap-2">
+            <User className="h-3.5 w-3.5 shrink-0 text-primary mt-0.5" />
+            <span>{name}</span>
+          </div>
           <div className="absolute top-full left-4 border-4 border-transparent border-t-gray-900 dark:border-t-slate-700" />
         </div>
       )}
@@ -288,8 +291,34 @@ function EmailPopover({ email }: { email: string }) {
   );
 }
 
-function InfoRow({ icon: Icon, label, value, isEmail }: { icon: React.ElementType; label: string; value: string; isEmail?: boolean }) {
-  const displayName = !isEmail && value.length > 15 ? value.slice(0, 15) + "\u2026" : value;
+function EmailPopover({ email }: { email: string }) {
+  const [open, setOpen] = useState(false);
+  const truncated = truncateEmail(email);
+  const needsTruncation = email.length > 25;
+  return (
+    <div className="relative min-w-0">
+      <span
+        className={`text-sm font-medium text-gray-900 dark:text-white${needsTruncation ? " cursor-pointer underline decoration-dotted underline-offset-2" : ""}`}
+        onMouseEnter={() => needsTruncation && setOpen(true)}
+        onMouseLeave={() => setOpen(false)}
+      >
+        {truncated}
+      </span>
+      {open && (
+        <div className="absolute z-50 bottom-full left-0 mb-2 w-64 max-h-24 overflow-y-auto px-3 py-2 rounded-lg bg-gray-900 dark:bg-slate-700 text-white text-xs shadow-xl break-all">
+          <div className="flex items-start gap-2">
+            <Mail className="h-3.5 w-3.5 shrink-0 text-primary mt-0.5" />
+            <span>{email}</span>
+          </div>
+          <div className="absolute top-full left-4 border-4 border-transparent border-t-gray-900 dark:border-t-slate-700" />
+        </div>
+      )}
+    </div>
+  );
+}
+
+function InfoRow({ icon: Icon, label, value, isEmail, isName }: { icon: React.ElementType; label: string; value: string; isEmail?: boolean; isName?: boolean }) {
+  const displayName = !isEmail && !isName && value.length > 15 ? value.slice(0, 15) + "\u2026" : value;
   return (
     <div className="flex items-start gap-2">
       <div className="p-1.5 rounded-md bg-primary/10 shrink-0 mt-0.5">
@@ -299,6 +328,8 @@ function InfoRow({ icon: Icon, label, value, isEmail }: { icon: React.ElementTyp
         <p className="text-[10px] text-muted-foreground uppercase tracking-wide">{label}</p>
         {isEmail
           ? <EmailPopover email={value} />
+          : isName
+          ? <NamePopover name={value} />
           : <p className="text-sm font-medium text-gray-900 dark:text-white truncate" title={value.length > 15 ? value : undefined}>{displayName}</p>
         }
       </div>
@@ -306,12 +337,14 @@ function InfoRow({ icon: Icon, label, value, isEmail }: { icon: React.ElementTyp
   );
 }
 
-function Row({ label, value, bold, isEmail }: { label: string; value: string; bold?: boolean; isEmail?: boolean }) {
+function Row({ label, value, bold, isEmail, isName }: { label: string; value: string; bold?: boolean; isEmail?: boolean; isName?: boolean }) {
   return (
     <div className="flex justify-between text-sm gap-2">
       <span className="text-muted-foreground shrink-0">{label}</span>
       {isEmail
         ? <EmailPopover email={value} />
+        : isName
+        ? <NamePopover name={value} />
         : <span className={`${bold ? "font-bold text-gray-900 dark:text-white" : "font-medium"} text-right`}>{value}</span>
       }
     </div>
