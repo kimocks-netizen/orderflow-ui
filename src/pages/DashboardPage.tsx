@@ -63,7 +63,13 @@ function CountDisplay({ value }: { value: number }) {
         <span className="absolute z-50 top-full left-1/2 -translate-x-1/2 mt-2 px-3 py-2 rounded-lg bg-popover border border-border text-popover-foreground text-xs font-normal shadow-xl whitespace-nowrap">
           {full}
           <span className="absolute bottom-full left-1/2 -translate-x-1/2 border-4 border-transparent border-b-border" />
-        </span>({ amount }: { amount: number }) {
+        </span>
+      )}
+    </span>
+  );
+}
+
+function AmountDisplay({ amount }: { amount: number }) {
   const [open, setOpen] = useState(false);
   const abbreviated = abbreviateCurrency(amount);
   const full = formatCurrency(amount);
