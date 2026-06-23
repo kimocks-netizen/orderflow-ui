@@ -15,7 +15,7 @@ import { formatCurrency, abbreviateCurrency } from "@/lib/utils";
 import {
   TrendingUp, TrendingDown, PackageCheck, XCircle,
   Clock, DollarSign, Users, AlertTriangle, CalendarDays,
-  BarChart2, LineChart as LineChartIcon, X, ChevronLeft, Printer,
+  BarChart2, LineChart as LineChartIcon, X, ChevronLeft,
 } from "lucide-react";
 
 type SeriesKey = "all" | "pending" | "paid" | "shipped" | "cancelled";
@@ -34,7 +34,6 @@ export function ReportsPage() {
   const [dateTo, setDateTo] = useState("");
   const [chartType, setChartType] = useState<"bar" | "line">("bar");
   const [hidden, setHidden] = useState<Set<SeriesKey>>(new Set());
-  const [isPrinting, setIsPrinting] = useState(false);
   const { data, isLoading, error } = useReportsQuery({
     date_from: dateFrom || undefined,
     date_to: dateTo || undefined,
@@ -46,15 +45,6 @@ export function ReportsPage() {
       next.has(key) ? next.delete(key) : next.add(key);
       return next;
     });
-
-  const handlePrintReport = () => {
-    setIsPrinting(true);
-    setHidden(new Set());
-    requestAnimationFrame(() => requestAnimationFrame(() => {
-      window.print();
-      setIsPrinting(false);
-    }));
-  };
 
   if (isLoading) return <PageLoader />;
   if (error) return <p className="text-destructive text-sm">{error.message}</p>;
@@ -120,11 +110,6 @@ export function ReportsPage() {
               <X className="h-3.5 w-3.5" /> Clear
             </Button>
           )}
-          {/* <Button variant="default" size="sm" onClick={handlePrintReport} disabled={isPrinting} className="gap-1.5 min-w-[120px]">
-            {isPrinting
-              ? <><span className="h-3.5 w-3.5 rounded-full border-2 border-white/30 border-t-white animate-spin" /> Preparing…</>
-              : <><Printer className="h-4 w-4" /> Print Report</>}
-          </Button> */}
           <Button variant="outline" size="sm" onClick={() => navigate(-1)} className="gap-1.5">
             <ChevronLeft className="h-4 w-4" /> Back
           </Button>
