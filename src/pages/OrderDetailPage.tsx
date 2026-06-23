@@ -8,7 +8,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ROUTES } from "@/routes/routes";
 import { useEffect, useState } from "react";
 import { useRecentOrdersStore } from "@/stores/useRecentOrdersStore";
-import { formatCurrency } from "@/lib/utils";
+import { formatCurrency, abbreviateCurrency } from "@/lib/utils";
 import {
   Clock, CreditCard, Package, CheckCircle2, XCircle,
   ArrowRight, ChevronRight, ChevronLeft, User, Mail, DollarSign, CalendarDays,
@@ -104,7 +104,7 @@ export function OrderDetailPage() {
                   <div className="grid grid-cols-2 gap-3">
                     <InfoRow icon={User} label="Customer" value={order.customer_name} isName />
                     <InfoRow icon={Mail} label="Email" value={order.customer_email} isEmail />
-                    <InfoRow icon={DollarSign} label="Total" value={formatCurrency(order.total_amount)} />
+                    <InfoRow icon={DollarSign} label="Total" value={abbreviateCurrency(order.total_amount)} isAmount />
                     <InfoRow icon={CalendarDays} label="Placed" value={new Date(order.created_at).toLocaleDateString()} />
                   </div>
                 </div>
@@ -243,7 +243,7 @@ export function OrderDetailPage() {
               <Row label="Customer" value={order.customer_name} isName />
               <Row label="Email" value={order.customer_email} isEmail />
               <div className="border-t border-border my-1" />
-              <Row label="Total Amount" value={formatCurrency(order.total_amount)} bold />
+              <Row label="Total Amount" value={abbreviateCurrency(order.total_amount)} bold isAmount />
               <div className="border-t border-border my-1" />
               <Row label="Created" value={new Date(order.created_at).toLocaleString()} />
               <Row label="Last Updated" value={new Date(order.updated_at).toLocaleString()} />
@@ -317,8 +317,33 @@ function EmailPopover({ email }: { email: string }) {
   );
 }
 
-function InfoRow({ icon: Icon, label, value, isEmail, isName }: { icon: React.ElementType; label: string; value: string; isEmail?: boolean; isName?: boolean }) {
-  const displayName = !isEmail && !isName && value.length > 15 ? value.slice(0, 15) + "\u2026" : value;
+function AmountPopover({ value, bold }: { value: string; bold?: boolean }) {
+  const [open, setOpen] = useState(false);
+  const amount = parseFloat(value.replace(/[^0-9.]/g, ""));
+  const abbreviated = abbreviateCurrency(amount);
+  const full = formatCurrency(amount);
+  const needsAbbrev = abbreviated !== full;
+  return (
+    <span className="relative inline-block">
+      <span
+        className={`text-sm text-right ${bold ? "font-bold text-gray-900 dark:text-white" : "font-medium"}${needsAbbrev ? " cursor-pointer underline decoration-dotted underline-offset-2" : ""}`}
+        onMouseEnter={() => needsAbbrev && setOpen(true)}
+        onMouseLeave={() => setOpen(false)}
+      >
+        {abbreviated}
+      </span>
+      {open && (
+        <span className="absolute z-50 top-full right-0 mt-2 px-3 py-2 rounded-lg bg-popover border border-border text-popover-foreground text-xs shadow-xl whitespace-nowrap">
+          {full}
+          <span className="absolute bottom-full right-4 border-4 border-transparent border-b-border" />
+        </span>
+      )}
+    </span>
+  );
+}
+
+function InfoRow({ icon: Icon, label, value, isEmail, isName, isAmount }: { icon: React.ElementType; label: string; value?: string; amount?: number; isEmail?: boolean; isName?: boolean; isAmount?: boolean }) {
+  const displayName = !isEmail && !isName && !isAmount && (value ?? "").length > 15 ? (value ?? "").slice(0, 15) + "\u2026" : (value ?? "");
   return (
     <div className="flex items-start gap-2">
       <div className="p-1.5 rounded-md bg-primary/10 shrink-0 mt-0.5">
@@ -327,17 +352,19 @@ function InfoRow({ icon: Icon, label, value, isEmail, isName }: { icon: React.El
       <div className="min-w-0">
         <p className="text-[10px] text-muted-foreground uppercase tracking-wide">{label}</p>
         {isEmail
-          ? <EmailPopover email={value} />
+          ? <EmailPopover email={value ?? ""} />
           : isName
-          ? <NamePopover name={value} />
-          : <p className="text-sm font-medium text-gray-900 dark:text-white truncate" title={value.length > 15 ? value : undefined}>{displayName}</p>
+          ? <NamePopover name={value ?? ""} />
+          : isAmount
+          ? <AmountPopover value={value ?? ""} />
+          : <p className="text-sm font-medium text-gray-900 dark:text-white truncate" title={(value ?? "").length > 15 ? (value ?? "") : undefined}>{displayName}</p>
         }
       </div>
     </div>
   );
 }
 
-function Row({ label, value, bold, isEmail, isName }: { label: string; value: string; bold?: boolean; isEmail?: boolean; isName?: boolean }) {
+function Row({ label, value, bold, isEmail, isName, isAmount }: { label: string; value: string; bold?: boolean; isEmail?: boolean; isName?: boolean; isAmount?: boolean }) {
   return (
     <div className="flex justify-between text-sm gap-2">
       <span className="text-muted-foreground shrink-0">{label}</span>
@@ -345,6 +372,8 @@ function Row({ label, value, bold, isEmail, isName }: { label: string; value: st
         ? <EmailPopover email={value} />
         : isName
         ? <NamePopover name={value} />
+        : isAmount
+        ? <AmountPopover value={value} bold={bold} />
         : <span className={`${bold ? "font-bold text-gray-900 dark:text-white" : "font-medium"} text-right`}>{value}</span>
       }
     </div>

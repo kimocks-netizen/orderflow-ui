@@ -45,14 +45,7 @@ function NamePopover({ name }: { name: string }) {
 
 function CountDisplay({ value }: { value: number }) {
   const [open, setOpen] = useState(false);
-  const abbreviated = value >= 1e18
-    ? (() => { const exp = Math.floor(Math.log10(value)); return `${parseFloat((value / Math.pow(10, exp)).toFixed(2))}×10^${exp}`; })()
-    : value >= 1e15 ? `${parseFloat((value / 1e15).toFixed(2))}Q`
-    : value >= 1e12 ? `${parseFloat((value / 1e12).toFixed(2))}T`
-    : value >= 1e9  ? `${parseFloat((value / 1e9).toFixed(2))}B`
-    : value >= 1e6  ? `${parseFloat((value / 1e6).toFixed(2))}M`
-    : value >= 1e3  ? `${parseFloat((value / 1e3).toFixed(2))}K`
-    : value.toLocaleString();
+  const abbreviated = abbreviateCurrency(value).replace("R ", "");
   const full = value.toLocaleString();
   const needsAbbrev = abbreviated !== full;
   return (
