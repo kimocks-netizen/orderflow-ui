@@ -6,6 +6,7 @@ import {
   Tooltip, Legend, ResponsiveContainer,
 } from "recharts";
 import { useReportsQuery } from "@/features/reports/queries";
+import { ReportSummaryCards } from "@/features/reports/ReportSummaryCards";
 import { PageLoader } from "@/components/shared/LoadingSpinner";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -14,7 +15,7 @@ import { formatCurrency, abbreviateCurrency } from "@/lib/utils";
 import {
   TrendingUp, TrendingDown, PackageCheck, XCircle,
   Clock, DollarSign, Users, AlertTriangle, CalendarDays,
-  BarChart2, LineChart as LineChartIcon, X, ChevronLeft,
+  BarChart2, LineChart as LineChartIcon, X, ChevronLeft, Printer,
 } from "lucide-react";
 
 type SeriesKey = "all" | "pending" | "paid" | "shipped" | "cancelled";
@@ -33,6 +34,7 @@ export function ReportsPage() {
   const [dateTo, setDateTo] = useState("");
   const [chartType, setChartType] = useState<"bar" | "line">("bar");
   const [hidden, setHidden] = useState<Set<SeriesKey>>(new Set());
+  const [isPrinting, setIsPrinting] = useState(false);
   const { data, isLoading, error } = useReportsQuery({
     date_from: dateFrom || undefined,
     date_to: dateTo || undefined,
@@ -44,6 +46,15 @@ export function ReportsPage() {
       next.has(key) ? next.delete(key) : next.add(key);
       return next;
     });
+
+  const handlePrintReport = () => {
+    setIsPrinting(true);
+    setHidden(new Set());
+    requestAnimationFrame(() => requestAnimationFrame(() => {
+      window.print();
+      setIsPrinting(false);
+    }));
+  };
 
   if (isLoading) return <PageLoader />;
   if (error) return <p className="text-destructive text-sm">{error.message}</p>;
@@ -63,15 +74,45 @@ export function ReportsPage() {
   const rangeLabel = dateFrom || dateTo
     ? `${dateFrom || "…"} → ${dateTo || "today"} (${chartData.length} day${chartData.length !== 1 ? "s" : ""})`
     : "Last 30 days";
+  const generatedAt = new Date().toLocaleString("en-ZA", {
+    year: "numeric",
+    month: "short",
+    day: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
+  });
+  const totals = data.trend.reduce(
+    (acc, day) => ({
+      all: acc.all + day.all,
+      pending: acc.pending + day.pending,
+      paid: acc.paid + day.paid,
+      shipped: acc.shipped + day.shipped,
+      cancelled: acc.cancelled + day.cancelled,
+    }),
+    { all: 0, pending: 0, paid: 0, shipped: 0, cancelled: 0 }
+  );
+
 
   return (
-    <div className="space-y-6">
-      <div className="flex flex-wrap items-start justify-between gap-4">
+    <div className="reports-print-scope space-y-6">
+      <div className="print-only report-cover">
+        <div>
+          <p className="report-kicker">OrderFlow</p>
+          <h1>Reports & Analyses</h1>
+          <p>{rangeLabel}</p>
+        </div>
+        <div className="report-meta">
+          <span>Generated</span>
+          <strong>{generatedAt}</strong>
+        </div>
+      </div>
+
+      <div className="grid grid-cols-[1fr_auto] items-start gap-4 report-screen-header">
         <div>
           <h1 className="text-2xl font-semibold tracking-tight text-gray-900 dark:text-white">Reports & Analyses</h1>
           <p className="text-sm text-muted-foreground mt-0.5">{rangeLabel} — order trends and operational insights</p>
         </div>
-        <div className="flex flex-wrap gap-3 items-center">
+        <div className="flex flex-wrap gap-3 items-center print-hidden">
           <Input type="date" value={dateFrom} onChange={(e) => setDateFrom(e.target.value)} className="w-40" />
           <Input type="date" value={dateTo} min={dateFrom} onChange={(e) => setDateTo(e.target.value)} className="w-40" />
           {(dateFrom || dateTo) && (
@@ -79,21 +120,44 @@ export function ReportsPage() {
               <X className="h-3.5 w-3.5" /> Clear
             </Button>
           )}
+          {/* <Button variant="default" size="sm" onClick={handlePrintReport} disabled={isPrinting} className="gap-1.5 min-w-[120px]">
+            {isPrinting
+              ? <><span className="h-3.5 w-3.5 rounded-full border-2 border-white/30 border-t-white animate-spin" /> Preparing…</>
+              : <><Printer className="h-4 w-4" /> Print Report</>}
+          </Button> */}
           <Button variant="outline" size="sm" onClick={() => navigate(-1)} className="gap-1.5">
             <ChevronLeft className="h-4 w-4" /> Back
           </Button>
         </div>
       </div>
 
-      {/* Chart */}
-      <Card className="glass-card border-0 shadow-sm">
+      <Card className="glass-card border-0 shadow-sm report-section">
+        <CardHeader className="pb-3">
+          <div className="flex flex-wrap items-start justify-between gap-2">
+            <div>
+              <CardTitle className="text-base font-semibold text-gray-900 dark:text-white">Report Summary</CardTitle>
+              <p className="text-xs text-muted-foreground mt-0.5">{rangeLabel}</p>
+            </div>
+            {!dateFrom && !dateTo && (
+              <span className="inline-flex items-center gap-1.5 rounded-full border border-yellow-300 dark:border-yellow-700 bg-yellow-50 dark:bg-yellow-900/20 px-2.5 py-1 text-[11px] font-medium text-yellow-700 dark:text-yellow-400">
+                ⚠ Showing last 30 days only — not a full account history
+              </span>
+            )}
+          </div>
+        </CardHeader>
+        <CardContent>
+          <ReportSummaryCards data={data} totals={totals} />
+        </CardContent>
+      </Card>
+
+      <Card className="glass-card border-0 shadow-sm report-section report-chart-section print-hidden">
         <CardHeader className="pb-2">
           <div className="flex items-start justify-between flex-wrap gap-3">
             <div>
               <CardTitle className="text-base font-semibold text-gray-900 dark:text-white">Orders Over Time</CardTitle>
               <p className="text-xs text-muted-foreground mt-0.5">{rangeLabel} — click legend labels to show/hide a series</p>
             </div>
-            <div className="flex flex-wrap items-center gap-3">
+            <div className="flex flex-wrap items-center gap-3 print-hidden">
               <div className="flex rounded-md border border-border overflow-hidden">
                 <button
                   onClick={() => setChartType("bar")}
@@ -135,7 +199,7 @@ export function ReportsPage() {
           </div>
         </CardHeader>
         <CardContent className="pt-2">
-          <div key={chartKey} className="h-72">
+          <div key={chartKey} className="h-96">
             <ResponsiveContainer width="100%" height="100%">
               {chartType === "bar" ? (
                 <BarChart data={chartData} margin={{ top: 8, right: 16, left: -8, bottom: 0 }}>
@@ -166,7 +230,7 @@ export function ReportsPage() {
       </Card>
 
       {/* Key Insights */}
-      <Card className="glass-card border-0 shadow-sm">
+      <Card className="glass-card border-0 shadow-sm report-section">
         <CardHeader className="pb-3">
           <CardTitle className="text-base font-semibold text-gray-900 dark:text-white">
             Key Insights
@@ -269,7 +333,7 @@ export function ReportsPage() {
 
       {/* Top customers table */}
       {data.topCustomers.length > 0 && (
-        <Card className="glass-card border-0 shadow-sm">
+        <Card className="glass-card border-0 shadow-sm report-section">
           <CardHeader className="pb-3">
             <CardTitle className="text-base font-semibold text-gray-900 dark:text-white">Top Customers</CardTitle>
             <p className="text-xs text-muted-foreground">By number of orders placed</p>
@@ -309,6 +373,57 @@ export function ReportsPage() {
           </CardContent>
         </Card>
       )}
+
+      <Card className="glass-card border-0 shadow-sm report-section">
+        <CardHeader className="pb-3">
+          <CardTitle className="text-base font-semibold text-gray-900 dark:text-white">Daily Trend Data</CardTitle>
+          <p className="text-xs text-muted-foreground">Source data used in the chart above</p>
+        </CardHeader>
+        <CardContent className="p-0">
+          <div className="overflow-x-auto">
+            <table className="w-full text-sm report-table">
+              <thead>
+                <tr className="border-b border-border/60 text-left text-xs uppercase tracking-wide text-muted-foreground">
+                  <th className="px-5 py-3">Date</th>
+                  <th className="px-5 py-3 text-right">All</th>
+                  <th className="px-5 py-3 text-right">Pending</th>
+                  <th className="px-5 py-3 text-right">Paid</th>
+                  <th className="px-5 py-3 text-right">Shipped</th>
+                  <th className="px-5 py-3 text-right">Cancelled</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-border/40">
+                {data.trend.map((day) => (
+                  <tr key={day.date} className="hover:bg-muted/40 transition-colors">
+                    <td className="px-5 py-3 font-medium">
+                      {new Date(day.date + "T00:00:00").toLocaleDateString("en-ZA", {
+                        year: "numeric",
+                        month: "short",
+                        day: "numeric",
+                      })}
+                    </td>
+                    <td className="px-5 py-3 text-right font-semibold">{day.all}</td>
+                    <td className="px-5 py-3 text-right">{day.pending}</td>
+                    <td className="px-5 py-3 text-right">{day.paid}</td>
+                    <td className="px-5 py-3 text-right">{day.shipped}</td>
+                    <td className="px-5 py-3 text-right">{day.cancelled}</td>
+                  </tr>
+                ))}
+              </tbody>
+              <tfoot>
+                <tr className="border-t border-border text-xs font-bold uppercase tracking-wide">
+                  <td className="px-5 py-3">Total</td>
+                  <td className="px-5 py-3 text-right">{totals.all}</td>
+                  <td className="px-5 py-3 text-right">{totals.pending}</td>
+                  <td className="px-5 py-3 text-right">{totals.paid}</td>
+                  <td className="px-5 py-3 text-right">{totals.shipped}</td>
+                  <td className="px-5 py-3 text-right">{totals.cancelled}</td>
+                </tr>
+              </tfoot>
+            </table>
+          </div>
+        </CardContent>
+      </Card>
     </div>
   );
 }

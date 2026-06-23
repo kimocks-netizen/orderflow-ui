@@ -5,7 +5,8 @@ export const createOrderSchema = z.object({
   customer_email: z.string().min(1, "Email is required").email("Invalid email address").max(254, "Email is too long"),
   total_amount: z.coerce
     .number({ invalid_type_error: "Amount must be a number" })
-    .min(0, "Amount must be 0 or greater"),
+    .min(0, "Amount must be 0 or greater")
+    .max(1e12, "Order amount cannot exceed R 1T — please contact support for orders of this size"),
 });
 
 export type CreateOrderFormValues = z.infer<typeof createOrderSchema>;

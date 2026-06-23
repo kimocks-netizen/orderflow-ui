@@ -10,7 +10,17 @@ export function formatCurrency(amount: number): string {
 }
 
 export function abbreviateCurrency(amount: number): string {
-  if (amount >= 1_000_000) return `R ${(amount / 1_000_000).toFixed(1).replace(/\.0$/, "")}M`;
-  if (amount >= 1_000) return `R ${(amount / 1_000).toFixed(1).replace(/\.0$/, "")}K`;
+  if (!isFinite(amount)) return "R ∞";
+  const fmt = (n: number, suffix: string) => `R ${parseFloat(n.toFixed(2))}${suffix}`;
+  if (amount >= 1e18) {
+    const exp = Math.floor(Math.log10(amount));
+    const coeff = amount / Math.pow(10, exp);
+    return `R ${parseFloat(coeff.toFixed(2))}×10^${exp}`;
+  }
+  if (amount >= 1e15) return fmt(amount / 1e15, "Q");
+  if (amount >= 1e12) return fmt(amount / 1e12, "T");
+  if (amount >= 1e9)  return fmt(amount / 1e9,  "B");
+  if (amount >= 1e6)  return fmt(amount / 1e6,  "M");
+  if (amount >= 1e3)  return fmt(amount / 1e3,  "K");
   return formatCurrency(amount);
 }

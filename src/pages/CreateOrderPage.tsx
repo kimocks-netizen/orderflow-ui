@@ -2,7 +2,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useNavigate } from "react-router-dom";
 import { useState } from "react";
-import { formatCurrency } from "@/lib/utils";
+import { formatCurrency, abbreviateCurrency } from "@/lib/utils";
 import { toast } from "sonner";
 import { useCreateOrder } from "@/features/orders/mutations";
 import { createOrderSchema, type CreateOrderFormValues } from "@/features/orders/schemas";
@@ -11,7 +11,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { PlusCircle } from "lucide-react";
+import { PlusCircle, AlertTriangle, Ban } from "lucide-react";
 import { ROUTES } from "@/routes/routes";
 import type { Order } from "@/types/order";
 
@@ -114,8 +114,25 @@ export function CreateOrderPage() {
                     placeholder="0.00"
                     {...register("total_amount", { onChange: (e) => setAmountVal(parseFloat(e.target.value) || 0) })}
                   />
-                  {amountVal > 0 && (
-                    <p className="text-xs text-muted-foreground tabular-nums">{formatCurrency(amountVal)}</p>
+                  {amountVal > 0 && amountVal <= 1e12 && (
+                    <p className="text-xs text-muted-foreground tabular-nums">
+                      {abbreviateCurrency(amountVal)}
+                      {amountVal !== parseFloat(formatCurrency(amountVal).replace(/[^0-9.]/g, "")) && (
+                        <span className="ml-1 text-muted-foreground/60">({formatCurrency(amountVal)})</span>
+                      )}
+                    </p>
+                  )}
+                  {amountVal >= 5e11 && amountVal <= 1e12 && (
+                    <p className="flex items-start gap-2 text-xs text-yellow-600 dark:text-yellow-400 bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800/40 rounded-lg px-3 py-2">
+                      <AlertTriangle className="h-3.5 w-3.5 shrink-0 mt-0.5" />
+                      Heads up — this is an unusually large order ({abbreviateCurrency(amountVal)}). Double-check before submitting.
+                    </p>
+                  )}
+                  {amountVal > 1e12 && (
+                    <p className="flex items-start gap-2 text-xs text-destructive bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800/40 rounded-lg px-3 py-2">
+                      <Ban className="h-3.5 w-3.5 shrink-0 mt-0.5" />
+                      Order amount exceeds the R 1T limit. Please contact support for orders of this size.
+                    </p>
                   )}
                   {errors.total_amount && (
                     <p className="text-xs text-destructive">{errors.total_amount.message}</p>

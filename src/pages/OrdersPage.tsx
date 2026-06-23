@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useSearchParams, Link, useNavigate } from "react-router-dom";
-import { Plus, Search, Eye, X, Mail, Calendar } from "lucide-react";
+import { Plus, Search, Eye, X, Mail } from "lucide-react";
 import { useOrdersQuery } from "@/features/orders/queries";
 import { PageHeader } from "@/components/shared/PageHeader";
 import { StatusBadge } from "@/components/shared/StatusBadge";
@@ -36,27 +36,6 @@ function AmountCell({ amount }: { amount: number }) {
           <div className="absolute bottom-full left-1/2 -translate-x-1/2 border-4 border-transparent border-b-border" />
         </div>
       )}
-    </div>
-  );
-}
-
-function DatePicker({ value, onChange, min, placeholder }: { value: string; onChange: (v: string) => void; min?: string; placeholder: string }) {
-  const display = value
-    ? value.replace(/-/g, '/')
-    : placeholder;
-  return (
-    <div className="relative flex items-center h-9 rounded-md border border-input bg-background text-sm w-36 overflow-hidden">
-      <Calendar className="absolute left-2.5 h-3.5 w-3.5 text-muted-foreground pointer-events-none z-10 shrink-0" />
-      <span className={`absolute left-8 right-1 pointer-events-none z-10 text-sm truncate ${value ? 'text-foreground' : 'text-muted-foreground'}`}>
-        {display}
-      </span>
-      <input
-        type="date"
-        value={value}
-        min={min}
-        onChange={(e) => onChange(e.target.value)}
-        className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
-      />
     </div>
   );
 }
@@ -197,11 +176,11 @@ export function OrdersPage() {
             ))}
           </SelectContent>
         </Select>
-        <DatePicker value={dateFrom} onChange={setDateFrom} placeholder="From date" />
-        <DatePicker value={dateTo} onChange={setDateTo} min={dateFrom} placeholder="To date" />
+        <Input type="date" value={dateFrom} onChange={(e) => setDateFrom(e.target.value)} className="w-40" />
+        <Input type="date" value={dateTo} min={dateFrom} onChange={(e) => setDateTo(e.target.value)} className="w-40" />
         {(dateFrom || dateTo) && (
           <Button variant="ghost" size="sm" onClick={() => { setDateFrom(""); setDateTo(""); }} className="gap-1.5 text-muted-foreground">
-            <X className="h-3.5 w-3.5" /> Clear dates
+            <X className="h-3.5 w-3.5" /> Clear
           </Button>
         )}
       </div>

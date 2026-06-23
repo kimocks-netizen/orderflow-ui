@@ -108,3 +108,143 @@
   font-weight: 600;
   text-transform: capitalize;
 }
+
+.print-only {
+  display: none;
+}
+
+@media print {
+  @page {
+    size: A4;
+    margin: 14mm;
+  }
+
+  html,
+  body {
+    background: #ffffff !important;
+    color: #111827 !important;
+  }
+
+  body {
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+
+  .print-hidden,
+  nav,
+  aside,
+  footer,
+  .fixed {
+    display: none !important;
+  }
+
+  .print-only {
+    display: block !important;
+  }
+
+  .reports-print-scope {
+    max-width: none !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    color: #111827 !important;
+  }
+
+  .reports-print-scope .report-screen-header {
+    display: none !important;
+  }
+
+  .reports-print-scope .glass-card,
+  .reports-print-scope .report-section {
+    break-inside: avoid;
+    page-break-inside: avoid;
+    background: #ffffff !important;
+    border: 1px solid #d1d5db !important;
+    box-shadow: none !important;
+    border-radius: 8px !important;
+    color: #111827 !important;
+  }
+
+  .reports-print-scope main,
+  .reports-print-scope h1,
+  .reports-print-scope h2,
+  .reports-print-scope h3,
+  .reports-print-scope p,
+  .reports-print-scope span,
+  .reports-print-scope td,
+  .reports-print-scope th {
+    color: #111827 !important;
+  }
+
+  .report-cover {
+    margin-bottom: 16px;
+    padding-bottom: 14px;
+    border-bottom: 2px solid #111827;
+  }
+
+  .report-cover h1 {
+    margin: 0;
+    font-size: 28px;
+    line-height: 1.15;
+    font-weight: 800;
+  }
+
+  .report-cover p {
+    margin: 4px 0 0;
+    font-size: 12px;
+  }
+
+  .report-kicker {
+    margin: 0 0 4px !important;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    font-size: 10px !important;
+    font-weight: 800;
+    color: #2563eb !important;
+  }
+
+  .report-meta {
+    display: flex;
+    gap: 8px;
+    margin-top: 10px;
+    font-size: 11px;
+  }
+
+  .report-meta span {
+    color: #6b7280 !important;
+  }
+
+  .report-metric-grid {
+    grid-template-columns: repeat(4, minmax(0, 1fr)) !important;
+    gap: 8px !important;
+  }
+
+  .report-metric {
+    background: #f9fafb !important;
+    border: 1px solid #d1d5db !important;
+    padding: 8px 10px !important;
+  }
+
+  .report-metric p:first-child {
+    font-size: 9px !important;
+    color: #6b7280 !important;
+  }
+
+  .report-metric p:last-child {
+    font-size: 14px !important;
+    color: #111827 !important;
+  }
+
+  .report-table {
+    font-size: 10px !important;
+  }
+
+  .report-table th,
+  .report-table td {
+    padding: 6px 10px !important;
+  }
+
+  .reports-print-scope a {
+    color: #111827 !important;
+    text-decoration: none !important;
+  }
+}
